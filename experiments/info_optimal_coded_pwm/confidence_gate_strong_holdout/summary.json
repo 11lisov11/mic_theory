@@ -1,0 +1,157 @@
+{
+  "status": "synthetic_host_only",
+  "calibration_seeds": [
+    30000,
+    30019
+  ],
+  "holdout_seeds": [
+    32000,
+    32019
+  ],
+  "motors": [
+    "AIR56",
+    "AL31"
+  ],
+  "actual_noise_ratios": [
+    1.0,
+    2.0,
+    3.0,
+    8.0
+  ],
+  "steps_per_trial": 500,
+  "calibration_trial_count": 160,
+  "holdout_trial_count": 160,
+  "width_threshold_deg": 4.821428571428572,
+  "bad_error_threshold_deg": 2.0,
+  "target_calibration_availability": 0.5,
+  "primary_comparison": "seed-paired bad-error risk, gate versus matched-count random selection",
+  "primary_random_minus_gate": {
+    "mean_baseline_minus_gate": 0.03284838115352579,
+    "bootstrap95_low": 0.01893027232707346,
+    "bootstrap95_high": 0.0483116277519517,
+    "n_seed_groups": 20
+  },
+  "secondary_entropy_minus_gate": {
+    "mean_baseline_minus_gate": 0.006920724974245856,
+    "bootstrap95_low": 0.003114400667056516,
+    "bootstrap95_high": 0.011130369204772157,
+    "n_seed_groups": 20
+  },
+  "secondary_peak_minus_gate": {
+    "mean_baseline_minus_gate": 0.019135241871842353,
+    "bootstrap95_low": 0.007838363511022056,
+    "bootstrap95_high": 0.03159927248090482,
+    "n_seed_groups": 20
+  },
+  "mean_holdout_availability": 0.5618125,
+  "gateway_rejections": 0,
+  "cells": [
+    {
+      "motor": "AIR56",
+      "actual_ratio": 1.0,
+      "mean_availability": 0.8582999999999998,
+      "zero_availability_trials": 0,
+      "mean_p95_all_deg": 1.5739732341940407,
+      "mean_p95_accepted_deg": 1.4580167691368542,
+      "bad_rate_all": 0.0381,
+      "bad_rate_accepted": 0.029593382267272515,
+      "bad_rate_entropy": 0.031108004194337645,
+      "bad_rate_peak": 0.031574041710357686,
+      "bad_rate_matched_random": 0.035830362344168705
+    },
+    {
+      "motor": "AIR56",
+      "actual_ratio": 2.0,
+      "mean_availability": 0.5761000000000001,
+      "zero_availability_trials": 0,
+      "mean_p95_all_deg": 2.0383158619429103,
+      "mean_p95_accepted_deg": 1.688020917999974,
+      "bad_rate_all": 0.09840000000000002,
+      "bad_rate_accepted": 0.07203610484290922,
+      "bad_rate_entropy": 0.08331886825203957,
+      "bad_rate_peak": 0.09859399409824683,
+      "bad_rate_matched_random": 0.09564172886651623
+    },
+    {
+      "motor": "AIR56",
+      "actual_ratio": 3.0,
+      "mean_availability": 0.4232,
+      "zero_availability_trials": 0,
+      "mean_p95_all_deg": 2.508346946892705,
+      "mean_p95_accepted_deg": 1.5936170800716951,
+      "bad_rate_all": 0.1555,
+      "bad_rate_accepted": 0.08364839319470699,
+      "bad_rate_entropy": 0.09735349716446125,
+      "bad_rate_peak": 0.12925330812854444,
+      "bad_rate_matched_random": 0.14422637051039697
+    },
+    {
+      "motor": "AIR56",
+      "actual_ratio": 8.0,
+      "mean_availability": 0.39759999999999995,
+      "zero_availability_trials": 0,
+      "mean_p95_all_deg": 2.7672275600115426,
+      "mean_p95_accepted_deg": 1.7246452055346744,
+      "bad_rate_all": 0.2129,
+      "bad_rate_accepted": 0.10412474849094568,
+      "bad_rate_entropy": 0.1141851106639839,
+      "bad_rate_peak": 0.136317907444668,
+      "bad_rate_matched_random": 0.17543360160965796
+    },
+    {
+      "motor": "AL31",
+      "actual_ratio": 1.0,
+      "mean_availability": 0.8924,
+      "zero_availability_trials": 0,
+      "mean_p95_all_deg": 1.4537815362828344,
+      "mean_p95_accepted_deg": 1.3707880917053852,
+      "bad_rate_all": 0.035500000000000004,
+      "bad_rate_accepted": 0.03103989242492156,
+      "bad_rate_entropy": 0.03204840878529807,
+      "bad_rate_peak": 0.032944867772299415,
+      "bad_rate_matched_random": 0.036234199910354106
+    },
+    {
+      "motor": "AL31",
+      "actual_ratio": 2.0,
+      "mean_availability": 0.5599000000000001,
+      "zero_availability_trials": 0,
+      "mean_p95_all_deg": 2.0505131772978418,
+      "mean_p95_accepted_deg": 1.6305566966864102,
+      "bad_rate_all": 0.0954,
+      "bad_rate_accepted": 0.04607965708162172,
+      "bad_rate_entropy": 0.054116806572602254,
+      "bad_rate_peak": 0.0671548490801929,
+      "bad_rate_matched_random": 0.08025647437042328
+    },
+    {
+      "motor": "AL31",
+      "actual_ratio": 3.0,
+      "mean_availability": 0.40659999999999996,
+      "zero_availability_trials": 0,
+      "mean_p95_all_deg": 2.385257684669571,
+      "mean_p95_accepted_deg": 1.645977741932617,
+      "bad_rate_all": 0.1202,
+      "bad_rate_accepted": 0.05041810132808657,
+      "bad_rate_entropy": 0.0632070831283817,
+      "bad_rate_peak": 0.08066896212493851,
+      "bad_rate_matched_random": 0.11818347270044269
+    },
+    {
+      "motor": "AL31",
+      "actual_ratio": 8.0,
+      "mean_availability": 0.38040000000000007,
+      "zero_availability_trials": 1,
+      "mean_p95_all_deg": 2.9113576146496483,
+      "mean_p95_accepted_deg": 1.7028242028151173,
+      "bad_rate_all": 0.1975,
+      "bad_rate_accepted": 0.0980546792849632,
+      "bad_rate_entropy": 0.10173501577287067,
+      "bad_rate_peak": 0.11593059936908517,
+      "bad_rate_matched_random": 0.16130441640378548
+    }
+  ],
+  "elapsed_wall_s": 198.01682149999942,
+  "absolute_angle_claim": false,
+  "hardware_claim": false
+}

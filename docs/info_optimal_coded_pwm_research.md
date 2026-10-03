@@ -515,6 +515,58 @@ python tools/study_coded_pwm_conformal_sets.py --calibration-offset 28000 --hold
 python -m pytest tests/test_conformal_rotor_set.py tests/test_coded_pwm_conformal_sets.py -q -p no:cacheprovider
 ```
 
+### Posterior-width abstention: does confidence predict large errors?
+
+The strong fixed-vector-6, per-block `(1,4)` observer at `T=2` was held
+fixed. A runtime gate computes the number of highest-posterior bins needed
+to contain 95% of the *modulo-angle* posterior and accepts the point
+estimate only when this HPD set is narrow enough. It sees neither the true
+angle nor an error label. A single global threshold, `4.8214` degrees,
+was the median of all 80,000 step widths from 160 calibration trials
+(20 seed groups `30000-30019`, AIR56/AL31, physical noise ratios
+`1,2,3,8`, 500 steps each). The endpoint was fixed before either holdout:
+an offline modulo-angle error greater than `2` degrees is a bad estimate.
+
+The first holdout (`31000-31019`) retained 57.3% of steps and reduced
+bad-error risk against a same-count random step selector by 5.08 percentage
+points, with a seed-group bootstrap 95% interval of 2.67 to 7.82 points.
+This motivated a *separate*, previously uninspected holdout
+(`32000-32019`) against stronger posterior-only rankers. Each trial's
+entropy and maximum-probability rankers were allowed to select exactly
+as many steps as the frozen width gate; their sorting over the complete
+trial is an offline matched-count comparator, not a causal runtime policy.
+The random comparator is its exact expected bad count at the same count
+within each trial. The gate was not retuned between holdouts.
+
+| Motor | Noise ratio | Availability | Bad-error rate: width | Entropy | Peak | Matched random |
+|---|---:|---:|---:|---:|---:|---:|
+| AIR56 | 1 | 85.8% | 3.0% | 3.1% | 3.2% | 3.6% |
+| AIR56 | 2 | 57.6% | 7.2% | 8.3% | 9.9% | 9.6% |
+| AIR56 | 3 | 42.3% | 8.4% | 9.7% | 12.9% | 14.4% |
+| AIR56 | 8 | 39.8% | 10.4% | 11.4% | 13.6% | 17.5% |
+| AL31 | 1 | 89.2% | 3.1% | 3.2% | 3.3% | 3.6% |
+| AL31 | 2 | 56.0% | 4.6% | 5.4% | 6.7% | 8.0% |
+| AL31 | 3 | 40.7% | 5.0% | 6.3% | 8.1% | 11.8% |
+| AL31 | 8 | 38.0% | 9.8% | 10.2% | 11.6% | 16.1% |
+
+Across 20 held-out seed groups, availability averaged 56.2%. The
+seed-group mean of `(baseline bad count - width-gate bad count) /
+accepted count` was 3.28 percentage points versus random (bootstrap
+95% interval 1.89 to 4.83), 0.69 versus entropy (0.31 to 1.11), and
+1.91 versus peak probability (0.78 to 3.16). One AL31/high-noise trial
+accepted no steps. These intervals quantify only simulation-seed
+variation; the secondary comparisons were devised after inspecting the
+first holdout, and no multiple-comparison or model-form guarantee follows.
+The result supports HPD width as a useful *synthetic abstention signal*,
+not an accurate sensor: even on accepted steps, high-noise bad-error rates
+were about 10%, and the physical rotor angle remains 28-fold ambiguous.
+No motor, inverter, firmware, or powered-bench claim is made.
+
+```powershell
+python tools/study_coded_pwm_confidence_gate.py --holdout-offset 32000 --out experiments/info_optimal_coded_pwm/confidence_gate_strong_holdout
+python -m pytest tests/test_posterior_confidence_gate.py tests/test_coded_pwm_confidence_gate.py -q -p no:cacheprovider
+```
+
 ![Paired-seed ablation, monochrome](../experiments/info_optimal_coded_pwm/blind_smoke/angle_p95_ablation_ci.png)
 
 ![Accuracy-switching tradeoff, monochrome](../experiments/info_optimal_coded_pwm/blind_smoke/pareto_switching.png)
