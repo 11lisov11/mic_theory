@@ -364,6 +364,51 @@ python tools/study_coded_pwm_persistent_noise.py --seed-offset 23000 --seeds 20 
 python -m pytest tests/test_persistent_noise_rotor_observer.py tests/test_coded_pwm_persistent_noise.py -q -p no:cacheprovider
 ```
 
+### Log-spaced persistent noise grid
+
+The next fixed hypothesis was that a denser noise grid could repair the
+AIR56/physical-ratio-2 failure without giving the observer the true ratio.
+Before evaluation, the candidate grid was fixed to
+`(1, sqrt(2), 2, sqrt(8), 4, sqrt(32), 8)`. No sensor truth or rotor truth
+enters the observer. A two-seed pilot (`24000-24001`) checked numerical
+behavior but did not change the grid. Fresh seeds `25000-25019` then tested
+AIR56 and AL31 at physical ratios `1,2,3,8`, 50 ms per trial. All four arms
+used the same fixed probe vector 6 and exogenous draws: matched-noise
+evaluation oracle, the previous per-block mixture at `T=2`, sparse
+persistent `(1,4)` at `T=2`, and dense persistent at `T=2`. The predeclared
+primary comparison was dense versus per-block at AIR56/ratio-2. All 640
+holdout rows formed 160 four-arm paired groups with zero digest conflicts
+and zero gateway rejections.
+
+| Motor | Physical ratio | P95 block / sparse / dense (deg) | Dense vs block paired reduction, unadjusted 95% interval | Dense 95%-set coverage |
+|---|---:|---:|---:|---:|
+| AIR56 | 1 | 1.54 / 1.55 / 1.55 | -3%, [-12%, +4%] | 95% |
+| AIR56 | 2 | 2.17 / 2.50 / 1.85 | +9%, [-1%, +19%] | 99% |
+| AIR56 | 3 | 2.76 / 2.64 / 2.42 | +9%, [+3%, +16%] | 99% |
+| AIR56 | 8 | 3.22 / 3.12 / 3.18 | -13%, [-44%, +12%] | 93% |
+| AL31 | 1 | 1.43 / 1.32 / 1.32 | +8%, [+1%, +14%] | 97% |
+| AL31 | 2 | 2.12 / 2.37 / 1.92 | +6%, [-5%, +15%] | 99% |
+| AL31 | 3 | 2.83 / 2.51 / 2.26 | +17%, [+11%, +24%] | 99% |
+| AL31 | 8 | 3.14 / 2.99 / 2.94 | -3%, [-29%, +16%] | 93% |
+
+The primary AIR56/ratio-2 interval **crossed zero**: the new method cannot
+be declared better than the strong per-block baseline. It did outperform
+the sparse persistent model at physical ratio 2 in both motors on these
+seeds (paired reductions `20.5%` and `17.4%`, unadjusted intervals
+`[11.4%,30.3%]` and `[11.2%,23.5%]`). The ratio-3 effects are secondary,
+unadjusted comparisons across eight cells. At ratio 8, coverage was only
+`93%` and no reliable accuracy gain was found. Moreover, the dense grid
+took roughly `2.4-3.1 ms` per step in Python, versus `0.7-0.9 ms` for the
+per-block baseline, all far above the simulated `0.1 ms` PWM period. The
+extra grid is therefore neither statistically established as preferable to
+the strongest fixed-probe baseline nor presently real-time deployable.
+
+```powershell
+python tools/study_coded_pwm_noise_grid.py --seed-offset 24000 --seeds 2 --steps 500 --out experiments/info_optimal_coded_pwm/noise_grid_pilot
+python tools/study_coded_pwm_noise_grid.py --seed-offset 25000 --seeds 20 --steps 500 --out experiments/info_optimal_coded_pwm/noise_grid_holdout
+python -m pytest tests/test_coded_pwm_noise_grid.py -q -p no:cacheprovider
+```
+
 ![Paired-seed ablation, monochrome](../experiments/info_optimal_coded_pwm/blind_smoke/angle_p95_ablation_ci.png)
 
 ![Accuracy-switching tradeoff, monochrome](../experiments/info_optimal_coded_pwm/blind_smoke/pareto_switching.png)
