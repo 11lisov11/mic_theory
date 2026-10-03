@@ -619,6 +619,39 @@ python tools/study_coded_pwm_speed_diffusion.py --seed-offset 34000 --out experi
 python -m pytest tests/test_coded_pwm_speed_diffusion.py -q -p no:cacheprovider
 ```
 
+### Command-slew-conditioned diffusion: partial recovery
+
+To keep the transient benefit without paying the steady-state cost, a
+causal scheduler raises speed-state diffusion from `0.001` to `0.05`
+when the *commanded* speed changes by at least `0.005 rad/s` in a step,
+then holds the higher value for 50 PWM steps after the last such change.
+It receives no measured or true rotor speed and no true angle. These
+constants were fixed before the next seed range. On fresh seeds
+`35000-35019`, the 240 shared trajectories per arm compared original
+fixed-low, fixed-high and command-slew diffusion for both motors,
+noise ratios `3,8`, and constant/ramp/reversal profiles.
+
+For ramp/reversal, fixed-low minus scheduled bad-error fraction was
++0.92 percentage points (seed-group bootstrap 95% interval +0.30 to
++1.55); constant-speed outputs matched fixed-low exactly, including
+the frozen gate's availability. Fixed-high minus scheduled motion error
+was -0.65 points (interval -1.39 to +0.04), so the schedule is not
+established as superior to fixed-high on transitions. On the ramp it
+equals fixed-high by construction; after a reversal it uses high
+diffusion for only 50 steps. This is a limited Pareto improvement over
+the fixed-low observer on these *prescribed* trajectories, not a robust
+angle estimator. At reversal, 46-48% of all-step angle errors remained
+above 2 degrees in the scheduled arm, and selected-step errors reached
+43.9% in one AL31/noise-ratio-3 cell. Moreover, imposed mechanical
+motion follows the command in this simulator; real slip and load could
+remove the benefit. The scheduler is not integrated into firmware or
+authorized for powered operation.
+
+```powershell
+python tools/study_coded_pwm_command_slew.py --seed-offset 35000 --out experiments/info_optimal_coded_pwm/command_slew_holdout
+python -m pytest tests/test_command_slew_diffusion.py tests/test_coded_pwm_command_slew.py -q -p no:cacheprovider
+```
+
 ![Paired-seed ablation, monochrome](../experiments/info_optimal_coded_pwm/blind_smoke/angle_p95_ablation_ci.png)
 
 ![Accuracy-switching tradeoff, monochrome](../experiments/info_optimal_coded_pwm/blind_smoke/pareto_switching.png)

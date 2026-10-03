@@ -27,7 +27,8 @@ RATIOS = (1.0, 2.0, 3.0, 8.0)
 BAD_ERROR_DEG = 2.0
 
 
-def _trial(case: Case, *, speed_diffusion_override: float | None = None) -> tuple[dict, np.ndarray]:
+def _trial(case: Case, *, speed_diffusion_override: float | None = None,
+           command_slew_speed_diffusion: bool = False) -> tuple[dict, np.ndarray]:
     stimulus = exogenous(case)
     result = run_trial(case, "B2_fixed_probe", stimulus=stimulus,
                        observer_profile="robust", fixed_probe_vector=6,
@@ -35,6 +36,7 @@ def _trial(case: Case, *, speed_diffusion_override: float | None = None) -> tupl
                        noise_beta_ratio_candidates=(1.0, 4.0),
                        likelihood_temperature=2.0,
                        speed_diffusion_override=speed_diffusion_override,
+                       command_slew_speed_diffusion=command_slew_speed_diffusion,
                        capture_posterior_trace=True)
     widths = np.asarray([hpd_width_deg(np.asarray(marginal), result["period_deg"])
                          for marginal in result["trace_angle_marginal"]])

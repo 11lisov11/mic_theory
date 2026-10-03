@@ -22,6 +22,7 @@ from config.env_research_air56_025kw import ENV as AIR56_ENV
 from config.env_research_al31_4_06kw import ENV as AL31_ENV
 from config.env_research_ao2_32_4_3kw import ENV as AO2_ENV
 from control.active_belief_rotor_observer import ActiveBeliefRotorObserver
+from control.command_slew_diffusion import CommandSlewDiffusion
 from control.persistent_noise_rotor_observer import PersistentNoiseRotorObserver
 from control.student_t_noise_rotor_observer import StudentTNoiseRotorObserver
 from control.info_optimal_coded_pwm import CodedPwmConfig, choose_sequence, legal_sequence, make_sequence
@@ -175,6 +176,7 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
               student_t_beta_df: float | None = None,
               student_t_beta_scale_ratio: float = 2.0,
               speed_diffusion_override: float | None = None,
+              command_slew_speed_diffusion: bool = False,
               capture_posterior_trace: bool = False) -> dict:
     if method not in METHODS:
         raise ValueError(method)
@@ -200,6 +202,10 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
         or not 0.0 <= speed_diffusion_override <= 0.5
     ):
         raise ValueError("speed diffusion override requires a robust profile and probability in [0, 0.5]")
+    if command_slew_speed_diffusion and (
+        observer_profile != "robust" or speed_diffusion_override is not None
+    ):
+        raise ValueError("command-slew diffusion requires the robust profile without an override")
     env = MOTORS[case.motor]
     params = AlphaBetaMotorParams.from_motor_params(env.motor)
     inverter = TwoLevelInverterParams(Vdc=case.vdc, f_pwm=10_000.0, dead_time_s=1e-6,
@@ -268,10 +274,14 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
     true_theta_trace: list[float] = []
     estimate_trace: list[float] = []
     posterior_trace: list[list[float]] = []
+    speed_diffusion_schedule = CommandSlewDiffusion() if command_slew_speed_diffusion else None
     acquisition_step: int | None = None
     good_run = 0
     for k in range(case.steps):
         tic = perf_counter()
+        if speed_diffusion_schedule is not None and observer is not None:
+            observer.speed_diffusion = speed_diffusion_schedule.update(
+                _speed(case, k, rated_rad_s))
         target_speed = _speed(case, k, rated_rad_s) + speed_bias
         base = carrier[0][k]
         measured_i = motor.currents().stator_abs
