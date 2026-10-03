@@ -23,6 +23,7 @@ from config.env_research_al31_4_06kw import ENV as AL31_ENV
 from config.env_research_ao2_32_4_3kw import ENV as AO2_ENV
 from control.active_belief_rotor_observer import ActiveBeliefRotorObserver
 from control.persistent_noise_rotor_observer import PersistentNoiseRotorObserver
+from control.student_t_noise_rotor_observer import StudentTNoiseRotorObserver
 from control.info_optimal_coded_pwm import CodedPwmConfig, choose_sequence, legal_sequence, make_sequence
 from control.sensorless_adaptive_foc_baseline import SensorlessAdaptiveFocBaselineController
 from models.induction_motor_alpha_beta import AlphaBetaInductionMotorModel, AlphaBetaMotorParams, AlphaBetaMotorState
@@ -170,7 +171,9 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
               assumed_noise_beta_ratio: float | None = None,
               noise_beta_ratio_candidates: tuple[float, ...] | None = None,
               likelihood_temperature: float = 1.0,
-              persistent_noise_ratios: tuple[float, ...] | None = None) -> dict:
+              persistent_noise_ratios: tuple[float, ...] | None = None,
+              student_t_beta_df: float | None = None,
+              student_t_beta_scale_ratio: float = 2.0) -> dict:
     if method not in METHODS:
         raise ValueError(method)
     if observer_profile not in ("legacy", "dense", "robust"):
@@ -185,6 +188,11 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
         raise ValueError("fixed probe vector must be 1..6 for B2")
     if persistent_noise_ratios is not None and (method != "B2_fixed_probe" or noise_beta_ratio_candidates is not None):
         raise ValueError("persistent noise mode is exclusive to the B2 fixed-probe experiment")
+    if student_t_beta_df is not None and (
+        method != "B2_fixed_probe" or noise_beta_ratio_candidates is not None
+        or persistent_noise_ratios is not None
+    ):
+        raise ValueError("Student-t noise is exclusive to the B2 fixed-probe experiment")
     env = MOTORS[case.motor]
     params = AlphaBetaMotorParams.from_motor_params(env.motor)
     inverter = TwoLevelInverterParams(Vdc=case.vdc, f_pwm=10_000.0, dead_time_s=1e-6,
@@ -208,6 +216,13 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
             true_saliency, noise_std_a=case.noise_std_a,
             noise_ratios=persistent_noise_ratios, speed_hypotheses=speed_grid,
             likelihood_temperature=likelihood_temperature, **observer_kwargs,
+        )
+    elif student_t_beta_df is not None:
+        observer = StudentTNoiseRotorObserver(
+            true_saliency, noise_std_a=case.noise_std_a,
+            beta_df=student_t_beta_df, beta_scale_ratio=student_t_beta_scale_ratio,
+            speed_hypotheses=speed_grid, likelihood_temperature=likelihood_temperature,
+            **observer_kwargs,
         )
     else:
         observer = ActiveBeliefRotorObserver(

@@ -409,6 +409,54 @@ python tools/study_coded_pwm_noise_grid.py --seed-offset 25000 --seeds 20 --step
 python -m pytest tests/test_coded_pwm_noise_grid.py -q -p no:cacheprovider
 ```
 
+### Continuous heavy-tailed current-noise likelihood
+
+A compact alternative to the seven-mode grid uses a Gaussian alpha-current
+innovation and a Student-t beta-current innovation. The beta degrees of
+freedom `3`, beta scale `2 * sigma_alpha` and likelihood temperature `2`
+were fixed before evaluation. This is a continuous heavy-tailed *working
+likelihood*, not an identified physical sensor model. It receives only
+measured current increments and commanded voltages. The same fixed probe
+vector 6 and nonideal/mismatched synthetic plant were used for the previous
+per-block `(1,4)` mixture at `T=2`, the Student-t arm and a matched-noise
+evaluation oracle. A two-seed pilot (`26000-26001`) checked execution but
+did not tune the likelihood. The new holdout used seeds `27000-27019`, both
+motors and physical beta/alpha noise ratios `1,2,3,8`, 50 ms per trial.
+
+The predeclared primary effect was the **macro-average of eight within-seed
+paired relative P95 changes**, bootstrapping the 20 seed clusters rather
+than treating eight scenarios sharing a seed as independent. It was
+`-8.2%` with an unadjusted 95% bootstrap interval `[-16.7%,-0.4%]`:
+the Student-t arm was worse overall than the strong per-block baseline.
+All 480 rows formed 160 three-arm paired groups with zero stimulus-digest
+conflicts and zero gateway rejections.
+
+| Motor | Physical ratio | P95 block -> Student-t (deg) | Student-t 95%-set coverage |
+|---|---:|---:|---:|
+| AIR56 | 1 | 1.49 -> 1.63 | 100% |
+| AIR56 | 2 | 2.05 -> 1.96 | 99% |
+| AIR56 | 3 | 2.57 -> 2.28 | 97% |
+| AIR56 | 8 | 3.25 -> 3.24 | 91% |
+| AL31 | 1 | 1.35 -> 1.79 | 100% |
+| AL31 | 2 | 2.17 -> 2.03 | 99% |
+| AL31 | 3 | 2.42 -> 2.21 | 97% |
+| AL31 | 8 | 3.11 -> 3.23 | 88% |
+
+The heavy tail costs less host compute than the two-component mixture
+(`474-569 us` versus `661-817 us` per step here), but both remain above
+the simulated `100 us` PWM deadline. The 100% coverage at low noise comes
+with wider sets rather than validated precision; the high-noise coverage
+misses the nominal 95% target. This fixed Student-t parameterization is
+therefore not a supported replacement for the per-block mixture. New
+parameter tuning would require a separate development set and a fresh
+holdout, not reuse of `27000-27019`.
+
+```powershell
+python tools/study_coded_pwm_student_noise.py --seed-offset 26000 --seeds 2 --steps 500 --out experiments/info_optimal_coded_pwm/student_noise_pilot
+python tools/study_coded_pwm_student_noise.py --seed-offset 27000 --seeds 20 --steps 500 --out experiments/info_optimal_coded_pwm/student_noise_holdout
+python -m pytest tests/test_student_t_noise_rotor_observer.py tests/test_coded_pwm_student_noise.py -q -p no:cacheprovider
+```
+
 ![Paired-seed ablation, monochrome](../experiments/info_optimal_coded_pwm/blind_smoke/angle_p95_ablation_ci.png)
 
 ![Accuracy-switching tradeoff, monochrome](../experiments/info_optimal_coded_pwm/blind_smoke/pareto_switching.png)
