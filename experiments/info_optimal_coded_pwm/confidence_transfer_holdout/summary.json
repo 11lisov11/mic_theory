@@ -1,0 +1,269 @@
+{
+  "status": "synthetic_host_only",
+  "frozen_threshold_deg": 4.821428571428572,
+  "seed_range": [
+    33000,
+    33019
+  ],
+  "steps_per_trial": 500,
+  "trial_count": 360,
+  "motors": [
+    "AIR56",
+    "AL31"
+  ],
+  "profiles": [
+    [
+      "constant",
+      0.01
+    ],
+    [
+      "ramp",
+      0.02
+    ],
+    [
+      "reversal",
+      0.02
+    ]
+  ],
+  "actual_noise_ratios": [
+    1.0,
+    3.0,
+    8.0
+  ],
+  "bad_error_threshold_deg": 2.0,
+  "mean_availability": 0.48307777777777783,
+  "random_minus_gate": {
+    "mean_baseline_minus_gate": 0.035784863976161416,
+    "bootstrap95_low": 0.020093953172399613,
+    "bootstrap95_high": 0.05299090948398926,
+    "n_seed_groups": 20
+  },
+  "entropy_minus_gate": {
+    "mean_baseline_minus_gate": 0.0013545490260165691,
+    "bootstrap95_low": -0.001210987208608297,
+    "bootstrap95_high": 0.004348258805896038,
+    "n_seed_groups": 20
+  },
+  "gateway_rejections": 0,
+  "cells": [
+    {
+      "motor": "AIR56",
+      "scenario": "constant",
+      "speed_fraction": 0.01,
+      "actual_ratio": 1.0,
+      "mean_availability": 0.8724000000000001,
+      "zero_availability_trials": 0,
+      "bad_rate_all": 0.0196,
+      "bad_rate_gate": 0.009399358092618064,
+      "bad_rate_entropy": 0.01054562127464466,
+      "bad_rate_random": 0.017654287024300778
+    },
+    {
+      "motor": "AIR56",
+      "scenario": "constant",
+      "speed_fraction": 0.01,
+      "actual_ratio": 3.0,
+      "mean_availability": 0.4398000000000001,
+      "zero_availability_trials": 0,
+      "bad_rate_all": 0.12799999999999997,
+      "bad_rate_gate": 0.04547521600727603,
+      "bad_rate_entropy": 0.05320600272851296,
+      "bad_rate_random": 0.07459981809913596
+    },
+    {
+      "motor": "AIR56",
+      "scenario": "constant",
+      "speed_fraction": 0.01,
+      "actual_ratio": 8.0,
+      "mean_availability": 0.39630000000000004,
+      "zero_availability_trials": 1,
+      "bad_rate_all": 0.1958,
+      "bad_rate_gate": 0.11077466565733031,
+      "bad_rate_entropy": 0.11985869290941206,
+      "bad_rate_random": 0.12976835730507194
+    },
+    {
+      "motor": "AIR56",
+      "scenario": "ramp",
+      "speed_fraction": 0.02,
+      "actual_ratio": 1.0,
+      "mean_availability": 0.808,
+      "zero_availability_trials": 0,
+      "bad_rate_all": 0.2071,
+      "bad_rate_gate": 0.18193069306930693,
+      "bad_rate_entropy": 0.18415841584158416,
+      "bad_rate_random": 0.19709455445544552
+    },
+    {
+      "motor": "AIR56",
+      "scenario": "ramp",
+      "speed_fraction": 0.02,
+      "actual_ratio": 3.0,
+      "mean_availability": 0.32589999999999997,
+      "zero_availability_trials": 0,
+      "bad_rate_all": 0.3802,
+      "bad_rate_gate": 0.28474992328935256,
+      "bad_rate_entropy": 0.27984044185332924,
+      "bad_rate_random": 0.3325032218471924
+    },
+    {
+      "motor": "AIR56",
+      "scenario": "ramp",
+      "speed_fraction": 0.02,
+      "actual_ratio": 8.0,
+      "mean_availability": 0.29200000000000004,
+      "zero_availability_trials": 1,
+      "bad_rate_all": 0.425,
+      "bad_rate_gate": 0.5037671232876713,
+      "bad_rate_entropy": 0.4986301369863014,
+      "bad_rate_random": 0.4506027397260274
+    },
+    {
+      "motor": "AIR56",
+      "scenario": "reversal",
+      "speed_fraction": 0.02,
+      "actual_ratio": 1.0,
+      "mean_availability": 0.6141,
+      "zero_availability_trials": 0,
+      "bad_rate_all": 0.3517,
+      "bad_rate_gate": 0.24816805080605764,
+      "bad_rate_entropy": 0.25061064973131414,
+      "bad_rate_random": 0.34510503175378604
+    },
+    {
+      "motor": "AIR56",
+      "scenario": "reversal",
+      "speed_fraction": 0.02,
+      "actual_ratio": 3.0,
+      "mean_availability": 0.276,
+      "zero_availability_trials": 0,
+      "bad_rate_all": 0.40730000000000005,
+      "bad_rate_gate": 0.27355072463768115,
+      "bad_rate_entropy": 0.26268115942028986,
+      "bad_rate_random": 0.360954347826087
+    },
+    {
+      "motor": "AIR56",
+      "scenario": "reversal",
+      "speed_fraction": 0.02,
+      "actual_ratio": 8.0,
+      "mean_availability": 0.2284,
+      "zero_availability_trials": 1,
+      "bad_rate_all": 0.45970000000000005,
+      "bad_rate_gate": 0.2841506129597198,
+      "bad_rate_entropy": 0.276707530647986,
+      "bad_rate_random": 0.3710525394045534
+    },
+    {
+      "motor": "AL31",
+      "scenario": "constant",
+      "speed_fraction": 0.01,
+      "actual_ratio": 1.0,
+      "mean_availability": 0.8637,
+      "zero_availability_trials": 0,
+      "bad_rate_all": 0.033100000000000004,
+      "bad_rate_gate": 0.013199027440083362,
+      "bad_rate_entropy": 0.012504341785342132,
+      "bad_rate_random": 0.026581683454903325
+    },
+    {
+      "motor": "AL31",
+      "scenario": "constant",
+      "speed_fraction": 0.01,
+      "actual_ratio": 3.0,
+      "mean_availability": 0.43339999999999995,
+      "zero_availability_trials": 0,
+      "bad_rate_all": 0.1578,
+      "bad_rate_gate": 0.06714351638209506,
+      "bad_rate_entropy": 0.07637286571296724,
+      "bad_rate_random": 0.09567005076142131
+    },
+    {
+      "motor": "AL31",
+      "scenario": "constant",
+      "speed_fraction": 0.01,
+      "actual_ratio": 8.0,
+      "mean_availability": 0.41220000000000007,
+      "zero_availability_trials": 0,
+      "bad_rate_all": 0.2347,
+      "bad_rate_gate": 0.11377971858321204,
+      "bad_rate_entropy": 0.1217855409995148,
+      "bad_rate_random": 0.14768607472100923
+    },
+    {
+      "motor": "AL31",
+      "scenario": "ramp",
+      "speed_fraction": 0.02,
+      "actual_ratio": 1.0,
+      "mean_availability": 0.8276,
+      "zero_availability_trials": 0,
+      "bad_rate_all": 0.2129,
+      "bad_rate_gate": 0.19357177380376994,
+      "bad_rate_entropy": 0.19647172547124214,
+      "bad_rate_random": 0.20059569840502658
+    },
+    {
+      "motor": "AL31",
+      "scenario": "ramp",
+      "speed_fraction": 0.02,
+      "actual_ratio": 3.0,
+      "mean_availability": 0.3909,
+      "zero_availability_trials": 0,
+      "bad_rate_all": 0.3141,
+      "bad_rate_gate": 0.2320286518291123,
+      "bad_rate_entropy": 0.23228447173190075,
+      "bad_rate_random": 0.2704533128677411
+    },
+    {
+      "motor": "AL31",
+      "scenario": "ramp",
+      "speed_fraction": 0.02,
+      "actual_ratio": 8.0,
+      "mean_availability": 0.3278,
+      "zero_availability_trials": 0,
+      "bad_rate_all": 0.3799,
+      "bad_rate_gate": 0.3984136668700427,
+      "bad_rate_entropy": 0.39658328248932273,
+      "bad_rate_random": 0.37385845027455766
+    },
+    {
+      "motor": "AL31",
+      "scenario": "reversal",
+      "speed_fraction": 0.02,
+      "actual_ratio": 1.0,
+      "mean_availability": 0.6502000000000001,
+      "zero_availability_trials": 0,
+      "bad_rate_all": 0.3365999999999999,
+      "bad_rate_gate": 0.26745616733312827,
+      "bad_rate_entropy": 0.2673023685019994,
+      "bad_rate_random": 0.3368105198400492
+    },
+    {
+      "motor": "AL31",
+      "scenario": "reversal",
+      "speed_fraction": 0.02,
+      "actual_ratio": 3.0,
+      "mean_availability": 0.2931,
+      "zero_availability_trials": 1,
+      "bad_rate_all": 0.44259999999999994,
+      "bad_rate_gate": 0.300921187308086,
+      "bad_rate_entropy": 0.2896622313203685,
+      "bad_rate_random": 0.3841617195496418
+    },
+    {
+      "motor": "AL31",
+      "scenario": "reversal",
+      "speed_fraction": 0.02,
+      "actual_ratio": 8.0,
+      "mean_availability": 0.24359999999999998,
+      "zero_availability_trials": 1,
+      "bad_rate_all": 0.45549999999999996,
+      "bad_rate_gate": 0.28981937602627256,
+      "bad_rate_entropy": 0.2885878489326765,
+      "bad_rate_random": 0.38501806239737274
+    }
+  ],
+  "absolute_angle_claim": false,
+  "hardware_claim": false,
+  "motion_is_prescribed": true
+}

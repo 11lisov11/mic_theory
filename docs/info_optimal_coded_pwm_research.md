@@ -567,6 +567,35 @@ python tools/study_coded_pwm_confidence_gate.py --holdout-offset 32000 --out exp
 python -m pytest tests/test_posterior_confidence_gate.py tests/test_coded_pwm_confidence_gate.py -q -p no:cacheprovider
 ```
 
+### Frozen confidence gate under motion: transfer failure
+
+The `4.8214`-degree standstill threshold was carried unchanged to fresh
+seeds `33000-33019`: AIR56/AL31, physical noise ratios `1,3,8`, and
+prescribed constant 1%-rated speed, ramp to/from 2%-rated speed, or
+2%-rated-speed reversal (360 trials, 500 steps each). The same observer,
+fixed probe and >2-degree modulo-error endpoint were used. The gate
+retained 48.3% of steps overall. It beat matched-count random selection
+by 3.58 percentage points in seed-group mean bad-error risk (bootstrap
+95% interval 2.01 to 5.30), but its 0.14-point difference from the
+stronger entropy ranker had an interval spanning zero (-0.12 to 0.43).
+Five trials accepted no steps.
+
+The important result is a failure of absolute reliability. On the AIR56
+2%-rated-speed ramp with physical noise ratio 8, 50.4% of *accepted*
+estimates exceeded the 2-degree error threshold, versus 45.1% for
+matched random selection. The corresponding AL31 ramp rate was 39.8%.
+At reversal, accepted-step bad-error rates ranged from 24.8% to 30.1%
+across the six motor/noise cells. Thus a narrow posterior is often
+confidently wrong under changing speed. A frozen standstill width gate
+must **not** be represented as a motion-safe sensor or a control-release
+criterion. Mechanical motion is imposed by the simulation, not generated
+by a closed-loop drive. No hardware evidence follows.
+
+```powershell
+python tools/study_coded_pwm_confidence_transfer.py --seed-offset 33000 --out experiments/info_optimal_coded_pwm/confidence_transfer_holdout
+python -m pytest tests/test_coded_pwm_confidence_transfer.py -q -p no:cacheprovider
+```
+
 ![Paired-seed ablation, monochrome](../experiments/info_optimal_coded_pwm/blind_smoke/angle_p95_ablation_ci.png)
 
 ![Accuracy-switching tradeoff, monochrome](../experiments/info_optimal_coded_pwm/blind_smoke/pareto_switching.png)
