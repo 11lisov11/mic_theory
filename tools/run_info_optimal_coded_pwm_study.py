@@ -22,6 +22,7 @@ from config.env_research_air56_025kw import ENV as AIR56_ENV
 from config.env_research_al31_4_06kw import ENV as AL31_ENV
 from config.env_research_ao2_32_4_3kw import ENV as AO2_ENV
 from control.active_belief_rotor_observer import ActiveBeliefRotorObserver
+from control.persistent_noise_rotor_observer import PersistentNoiseRotorObserver
 from control.info_optimal_coded_pwm import CodedPwmConfig, choose_sequence, legal_sequence, make_sequence
 from control.sensorless_adaptive_foc_baseline import SensorlessAdaptiveFocBaselineController
 from models.induction_motor_alpha_beta import AlphaBetaInductionMotorModel, AlphaBetaMotorParams, AlphaBetaMotorState
@@ -168,7 +169,8 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
               observer_profile: str = "legacy", fixed_probe_vector: int | None = None,
               assumed_noise_beta_ratio: float | None = None,
               noise_beta_ratio_candidates: tuple[float, ...] | None = None,
-              likelihood_temperature: float = 1.0) -> dict:
+              likelihood_temperature: float = 1.0,
+              persistent_noise_ratios: tuple[float, ...] | None = None) -> dict:
     if method not in METHODS:
         raise ValueError(method)
     if observer_profile not in ("legacy", "dense", "robust"):
@@ -181,6 +183,8 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
         raise ValueError("assumed noise ratio must be finite and positive")
     if fixed_probe_vector is not None and (method != "B2_fixed_probe" or fixed_probe_vector not in range(1, 7)):
         raise ValueError("fixed probe vector must be 1..6 for B2")
+    if persistent_noise_ratios is not None and (method != "B2_fixed_probe" or noise_beta_ratio_candidates is not None):
+        raise ValueError("persistent noise mode is exclusive to the B2 fixed-probe experiment")
     env = MOTORS[case.motor]
     params = AlphaBetaMotorParams.from_motor_params(env.motor)
     inverter = TwoLevelInverterParams(Vdc=case.vdc, f_pwm=10_000.0, dead_time_s=1e-6,
@@ -197,14 +201,22 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
     if observer_profile == "robust":
         observer_kwargs = {"angle_diffusion": 0.003, "speed_diffusion": 0.001,
                            "gain_diffusion": 0.001}
-    observer = ActiveBeliefRotorObserver(
-        true_saliency, noise_std_a=case.noise_std_a,
-        noise_std_axes_a=(case.noise_std_a, case.noise_std_a * (
-            case.measurement_noise_beta_ratio if assumed_noise_beta_ratio is None else assumed_noise_beta_ratio)),
-        speed_hypotheses=speed_grid, noise_beta_ratio_candidates=noise_beta_ratio_candidates,
-        likelihood_temperature=likelihood_temperature,
-        **observer_kwargs,
-    ) if method != "B0_model_only" else None
+    if method == "B0_model_only":
+        observer = None
+    elif persistent_noise_ratios is not None:
+        observer = PersistentNoiseRotorObserver(
+            true_saliency, noise_std_a=case.noise_std_a,
+            noise_ratios=persistent_noise_ratios, speed_hypotheses=speed_grid,
+            likelihood_temperature=likelihood_temperature, **observer_kwargs,
+        )
+    else:
+        observer = ActiveBeliefRotorObserver(
+            true_saliency, noise_std_a=case.noise_std_a,
+            noise_std_axes_a=(case.noise_std_a, case.noise_std_a * (
+                case.measurement_noise_beta_ratio if assumed_noise_beta_ratio is None else assumed_noise_beta_ratio)),
+            speed_hypotheses=speed_grid, noise_beta_ratio_candidates=noise_beta_ratio_candidates,
+            likelihood_temperature=likelihood_temperature, **observer_kwargs,
+        )
     cfg = CodedPwmConfig(information_method={"B3_info_renyi2": "renyi2", "B3_info_fisher": "fisher",
                                                "B3_info_bayes_risk": "bayes_risk"}.get(method, "separation"),
                          reuse_opposite_probe_score=method == "B3_info_bayes_risk")
@@ -399,6 +411,9 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
         result[f"{key}_coverage"] = float(np.mean(coverage[mass])) if observer is not None else math.nan
         result[f"{key}_width_deg"] = float(np.mean(widths[mass])) if observer is not None else math.nan
         result[f"{key}_calibration_error"] = abs(result[f"{key}_coverage"] - mass) if observer is not None else math.nan
+    if isinstance(observer, PersistentNoiseRotorObserver):
+        result["noise_mode_probabilities"] = dict(zip(observer.noise_ratios,
+                                                       map(float, observer.noise_mode_probabilities())))
     return result
 
 

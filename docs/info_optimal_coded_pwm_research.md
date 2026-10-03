@@ -295,6 +295,75 @@ their 240 paired motor/noise/seed groups and zero gateway rejections. This is
 only a host-model result for an **assumed** 28-period slot signature, not
 measured sensorless operation or permission to energize the inverter.
 
+### Persistent versus per-block noise uncertainty
+
+The physical noise ratio is constant within each synthetic trial, whereas
+the preceding equal-weight mixture reselects an unknown noise mode at each
+PWM block. A separate joint grid therefore treats the ratio (`1` or `4`)
+as a **persistent latent state**. Its mode posterior is updated only from
+commanded voltages and measured current increments; the true ratio, angle
+and speed are absent from the working observer. This is a different model,
+not a tuned version of the previous result. Fixed probe vector 6, gateway
+limits, plant inputs and temperature `T=2` were held common. The four
+predeclared arms were a matched-noise evaluation oracle, per-block mixture
+at `T=1` and `T=2`, and persistent mixture at `T=2`.
+
+A three-seed numerical pilot (`21500-21502`) was followed without tuning by
+a fresh 20-seed-per-cell holdout (`22000-22019`, 50 ms). Each of the 80
+motor/noise/seed groups contains the same exogenous realization for all four
+arms; there were zero digest conflicts and zero gateway rejections.
+
+| Motor | Physical noise ratio | P95 matched / block T=2 / persistent T=2 (deg) | Coverage block / persistent |
+|---|---:|---:|---:|
+| AIR56 | 1 | 1.58 / 1.45 / 1.50 | 98% / 95% |
+| AIR56 | 4 | 2.45 / 2.64 / 2.42 | 95% / 99% |
+| AL31 | 1 | 1.46 / 1.34 / 1.37 | 98% / 96% |
+| AL31 | 4 | 2.48 / 2.56 / 2.30 | 97% / 99% |
+
+The final posterior probability of the simulated true noise mode rounded to
+`1.00` for all cells, but **this did not establish an angle-accuracy gain**.
+Mean paired P95 changes of persistent versus per-block `T=2` were `-4.0%`,
+`+3.9%`, `-10.0%` and `+3.8%` in table order; every unadjusted 95% seed-
+bootstrap interval crossed zero. The matched-noise arm is an oracle for
+evaluation only, not a deployable baseline. Persistent inference took about
+`760-842 us` per step on this Python host, versus `702-751 us` for the
+per-block mixture; neither meets the model's `100 us` PWM deadline.
+
+This negative result is limited to two *exactly represented*, stationary
+noise ratios and the assumed slot-harmonic plant. In particular, confidence
+of `1.00` inside this model does not validate sensor calibration in hardware.
+The initial holdout did not test noise between candidates or changing during
+a run.
+
+That between-candidate failure mode was then tested **without changing the
+observers** on new seeds `23000-23019`, using physical noise ratios `2`
+(interpolation) and `8` (extrapolation). The candidate set stayed `(1,4)`;
+the matched single-noise arm used the physical ratio only as an evaluation
+oracle. All 320 rows formed 80 four-arm paired groups with zero stimulus-
+digest conflicts and zero gateway rejections.
+
+| Motor | Physical ratio | P95 block T=2 -> persistent T=2 (deg) | 95%-set coverage block / persistent | Paired relative P95 reduction, 95% seed-bootstrap interval |
+|---|---:|---:|---:|---:|
+| AIR56 | 2 | 2.15 -> 2.57 | 97% / 99% | -29.3%, [-60.2%, -4.6%] |
+| AIR56 | 8 | 2.90 -> 2.82 | 90% / 91% | +2.6%, [-4.2%, +9.2%] |
+| AL31 | 2 | 2.13 -> 2.34 | 95% / 100% | -18.8%, [-37.9%, +0.7%] |
+| AL31 | 8 | 2.87 -> 2.77 | 90% / 91% | -0.8%, [-12.0%, +8.5%] |
+
+Thus the discrete persistent-mode assumption can materially harm accuracy
+at an intermediate noise level even when the nominal `1` and `4` cases are
+well identified. Only the AIR56/ratio-2 unadjusted interval excludes zero;
+four comparisons were inspected, so this is a stress counterexample, not a
+familywise claim. The ratio-8 coverage misses the nominal 95% target for
+both observers. Continuously varying noise, temporal drift and other motors
+still require separate tests.
+
+```powershell
+python tools/study_coded_pwm_persistent_noise.py --seed-offset 21500 --seeds 3 --steps 500 --out experiments/info_optimal_coded_pwm/persistent_noise_pilot
+python tools/study_coded_pwm_persistent_noise.py --seed-offset 22000 --seeds 20 --steps 500 --out experiments/info_optimal_coded_pwm/persistent_noise_holdout
+python tools/study_coded_pwm_persistent_noise.py --seed-offset 23000 --seeds 20 --steps 500 --actual-ratios 2 8 --out experiments/info_optimal_coded_pwm/persistent_noise_out_of_grid
+python -m pytest tests/test_persistent_noise_rotor_observer.py tests/test_coded_pwm_persistent_noise.py -q -p no:cacheprovider
+```
+
 ![Paired-seed ablation, monochrome](../experiments/info_optimal_coded_pwm/blind_smoke/angle_p95_ablation_ci.png)
 
 ![Accuracy-switching tradeoff, monochrome](../experiments/info_optimal_coded_pwm/blind_smoke/pareto_switching.png)
