@@ -1,0 +1,133 @@
+{
+  "study": "synthetic directional-noise coded-PWM hypothesis",
+  "observer_profile": "robust",
+  "motors": [
+    "AIR56"
+  ],
+  "ratio": 4.0,
+  "scenario": "standstill",
+  "seeds": 3,
+  "steps": 500,
+  "seed_offset": 12000,
+  "trial_count": 30,
+  "winner_selection_is_exploratory": true,
+  "winners": {
+    "AIR56": {
+      "fixed": "fixed_2",
+      "adaptive": "B3_info_fisher"
+    }
+  },
+  "summary": [
+    {
+      "motor": "AIR56",
+      "arm": "cycle",
+      "n": 3,
+      "angle_p95_deg": 1.1919514301675271,
+      "hpd95_coverage": 1.0,
+      "hpd95_width_deg": 3.7908928571428575,
+      "torque_ripple_rms_nm": 9.588812202065885e-05,
+      "switches_per_s": 62280.0,
+      "compute_mean_us": 702.9266666697064
+    },
+    {
+      "motor": "AIR56",
+      "arm": "fixed_1",
+      "n": 3,
+      "angle_p95_deg": 1.330534940559916,
+      "hpd95_coverage": 0.9993333333333334,
+      "hpd95_width_deg": 3.8280357142857144,
+      "torque_ripple_rms_nm": 0.00010135031528975251,
+      "switches_per_s": 60000.0,
+      "compute_mean_us": 632.8726666703611
+    },
+    {
+      "motor": "AIR56",
+      "arm": "fixed_2",
+      "n": 3,
+      "angle_p95_deg": 0.9867519833828293,
+      "hpd95_coverage": 1.0,
+      "hpd95_width_deg": 3.7769642857142856,
+      "torque_ripple_rms_nm": 0.00010135031528975251,
+      "switches_per_s": 60000.0,
+      "compute_mean_us": 706.4468000015344
+    },
+    {
+      "motor": "AIR56",
+      "arm": "fixed_3",
+      "n": 3,
+      "angle_p95_deg": 3.540356369131377,
+      "hpd95_coverage": 0.9973333333333333,
+      "hpd95_width_deg": 5.119821428571428,
+      "torque_ripple_rms_nm": 0.0,
+      "switches_per_s": 60020.0,
+      "compute_mean_us": 764.4820000012563
+    },
+    {
+      "motor": "AIR56",
+      "arm": "fixed_4",
+      "n": 3,
+      "angle_p95_deg": 1.6162162690971102,
+      "hpd95_coverage": 1.0,
+      "hpd95_width_deg": 5.280535714285714,
+      "torque_ripple_rms_nm": 0.0,
+      "switches_per_s": 64440.0,
+      "compute_mean_us": 915.0139333302528
+    },
+    {
+      "motor": "AIR56",
+      "arm": "fixed_5",
+      "n": 3,
+      "angle_p95_deg": 1.4376448405256894,
+      "hpd95_coverage": 0.9740000000000001,
+      "hpd95_width_deg": 3.5376785714285717,
+      "torque_ripple_rms_nm": 0.00010135031528975279,
+      "switches_per_s": 64460.0,
+      "compute_mean_us": 689.9480666694823
+    },
+    {
+      "motor": "AIR56",
+      "arm": "fixed_6",
+      "n": 3,
+      "angle_p95_deg": 1.0059405271506185,
+      "hpd95_coverage": 1.0,
+      "hpd95_width_deg": 3.7426785714285717,
+      "torque_ripple_rms_nm": 0.00010135031528975279,
+      "switches_per_s": 64460.0,
+      "compute_mean_us": 676.4979333343035
+    },
+    {
+      "motor": "AIR56",
+      "arm": "B3_info_separation",
+      "n": 3,
+      "angle_p95_deg": 1.4601569223466695,
+      "hpd95_coverage": 0.9953333333333333,
+      "hpd95_width_deg": 3.159464285714286,
+      "torque_ripple_rms_nm": 6.926960083521885e-05,
+      "switches_per_s": 61173.333333333336,
+      "compute_mean_us": 1769.523599994803
+    },
+    {
+      "motor": "AIR56",
+      "arm": "B3_info_renyi2",
+      "n": 3,
+      "angle_p95_deg": 1.3739866753984753,
+      "hpd95_coverage": 0.9953333333333333,
+      "hpd95_width_deg": 3.167678571428571,
+      "torque_ripple_rms_nm": 6.975504600414674e-05,
+      "switches_per_s": 61160.0,
+      "compute_mean_us": 2093.9033333317334
+    },
+    {
+      "motor": "AIR56",
+      "arm": "B3_info_fisher",
+      "n": 3,
+      "angle_p95_deg": 0.834643630868626,
+      "hpd95_coverage": 0.9993333333333334,
+      "hpd95_width_deg": 4.606249999999999,
+      "torque_ripple_rms_nm": 4.5310214484523714e-05,
+      "switches_per_s": 62853.333333333336,
+      "compute_mean_us": 2174.716199997571
+    }
+  ],
+  "limitation": "No measured AIR56/AL31 current-noise covariance or rotor saliency"
+}

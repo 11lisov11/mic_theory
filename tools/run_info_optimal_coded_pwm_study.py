@@ -31,7 +31,7 @@ from safety.ai_pwm_gateway import AIPwmRequest, AIPwmSafetyGateway, GatewayLimit
 
 
 MOTORS = {"AIR56": AIR56_ENV, "AL31": AL31_ENV, "AO2": AO2_ENV}
-METHODS = ("B0_model_only", "B1_belief", "B2_fixed_probe", "B3_info_separation", "B3_info_renyi2",
+METHODS = ("B0_model_only", "B1_belief", "B2_fixed_probe", "B3_info_separation", "B3_info_renyi2", "B3_info_fisher", "B3_info_bayes_risk", "B4_oracle_fisher",
            "B3_lag1", "B3_lag2", "B3_lag4", "B3_lag8", "B3_sparse")
 MAIN_METHODS = ("B0_model_only", "B1_belief", "B2_fixed_probe", "B3_info_separation", "B3_info_renyi2", "B3_lag4", "B3_sparse")
 MASSES = (0.50, 0.90, 0.95, 0.99)
@@ -49,6 +49,7 @@ class Case:
     steps: int = 160
     vdc: float = 80.0
     noise_std_a: float = 0.002
+    measurement_noise_beta_ratio: float = 1.0
 
 
 def phase_zero_check(motor: str = "AIR56") -> dict:
@@ -162,9 +163,17 @@ def _speed_hypotheses(case: Case, rated_rad_s: float) -> tuple[float, ...]:
                          0.5 * commanded, commanded, 1.5 * commanded}))
 
 
-def run_trial(case: Case, method: str, *, stimulus: dict | None = None, carrier: tuple[list[int], list[float]] | None = None) -> dict:
+def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
+              carrier: tuple[list[int], list[float]] | None = None,
+              observer_profile: str = "legacy", fixed_probe_vector: int | None = None) -> dict:
     if method not in METHODS:
         raise ValueError(method)
+    if observer_profile not in ("legacy", "dense", "robust"):
+        raise ValueError(observer_profile)
+    if case.measurement_noise_beta_ratio <= 0:
+        raise ValueError("measurement noise ratio must be positive")
+    if fixed_probe_vector is not None and (method != "B2_fixed_probe" or fixed_probe_vector not in range(1, 7)):
+        raise ValueError("fixed probe vector must be 1..6 for B2")
     env = MOTORS[case.motor]
     params = AlphaBetaMotorParams.from_motor_params(env.motor)
     inverter = TwoLevelInverterParams(Vdc=case.vdc, f_pwm=10_000.0, dead_time_s=1e-6,
@@ -173,9 +182,23 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None, carrier:
     stimulus = stimulus if stimulus is not None else exogenous(case)
     carrier = carrier if carrier is not None else _carrier(case, params, inverter, rated_rad_s)
     true_saliency = SlotSaliency(harmonic=28, strength=case.strength, differential_inductance_h=max(params.Lls, 0.045))
-    observer = ActiveBeliefRotorObserver(true_saliency, noise_std_a=case.noise_std_a,
-                                        speed_hypotheses=_speed_hypotheses(case, rated_rad_s)) if method != "B0_model_only" else None
-    cfg = CodedPwmConfig(information_method="renyi2" if method == "B3_info_renyi2" else "separation")
+    speed_grid = _speed_hypotheses(case, rated_rad_s)
+    observer_kwargs = {}
+    if observer_profile in ("dense", "robust"):
+        if abs(case.speed_fraction) * rated_rad_s <= 20.0:
+            speed_grid = tuple(sorted({-20.0, -5.0, *np.arange(-3.0, 3.01, 0.25), 5.0, 20.0}))
+    if observer_profile == "robust":
+        observer_kwargs = {"angle_diffusion": 0.003, "speed_diffusion": 0.001,
+                           "gain_diffusion": 0.001}
+    observer = ActiveBeliefRotorObserver(
+        true_saliency, noise_std_a=case.noise_std_a,
+        noise_std_axes_a=(case.noise_std_a, case.noise_std_a * case.measurement_noise_beta_ratio),
+        speed_hypotheses=speed_grid, **observer_kwargs,
+    ) if method != "B0_model_only" else None
+    cfg = CodedPwmConfig(information_method={"B3_info_renyi2": "renyi2", "B3_info_fisher": "fisher",
+                                               "B3_info_bayes_risk": "bayes_risk"}.get(method, "separation"),
+                         reuse_opposite_probe_score=method == "B3_info_bayes_risk")
+    noise_scale = np.asarray((1.0, case.measurement_noise_beta_ratio))
     gateway = AIPwmSafetyGateway(_limits(params, inverter))
     speed_bias = 0.0 if case.scenario in ("standstill", "locked") else float(stimulus["speed_bias_fraction"]) * rated_rad_s
     initial_speed = _speed(case, 0, rated_rad_s) + speed_bias
@@ -207,13 +230,34 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None, carrier:
         measured_i = motor.currents().stator_abs
         reference = make_sequence(base, None, inverter, cfg)
         if method == "B2_fixed_probe":
-            probe = (1, 2, 3, 4, 5, 6)[k % 6]
+            probe = fixed_probe_vector if fixed_probe_vector is not None else (1, 2, 3, 4, 5, 6)[k % 6]
             choice = make_sequence(base, probe, inverter, cfg)
             vprobe = alpha_beta_voltage(probe, inverter)
             predicted = measured_i + cfg.probe_dwell_s * math.hypot(*vprobe) * (1.0 + case.strength) / true_saliency.differential_inductance_h
             if predicted >= gateway.limits.i_soft_a or not legal_sequence(choice, reference=reference, inverter=inverter,
                     gateway=gateway, measured_i_abs=measured_i, predicted_i_abs=predicted):
                 choice = reference
+        elif method == "B4_oracle_fisher":
+            # Evaluation-only ceiling: true angle never enters observer or B3.
+            best = -math.inf
+            choice = reference
+            phase = true_saliency.harmonic * motor.state.theta_m
+            factor = cfg.probe_dwell_s * true_saliency.strength * true_saliency.harmonic / true_saliency.differential_inductance_h
+            for candidate_vector in range(1, 7):
+                candidate = make_sequence(base, candidate_vector, inverter, cfg)
+                va, vb = alpha_beta_voltage(candidate_vector, inverter)
+                predicted = measured_i + cfg.probe_dwell_s * math.hypot(va, vb) * (1.0 + case.strength) / true_saliency.differential_inductance_h
+                if predicted >= gateway.limits.i_soft_a or not legal_sequence(
+                    candidate, reference=reference, inverter=inverter, gateway=gateway,
+                    measured_i_abs=measured_i, predicted_i_abs=predicted,
+                ):
+                    continue
+                da = factor * (-math.sin(phase) * va + math.cos(phase) * vb)
+                db = factor * (math.cos(phase) * va + math.sin(phase) * vb)
+                score = (da / case.noise_std_a) ** 2 + (db / (case.noise_std_a * case.measurement_noise_beta_ratio)) ** 2
+                if score > best:
+                    best = score
+                    choice = candidate
         elif method.startswith("B3"):
             assert observer is not None
             choice = choose_sequence(base_vector=base, observer=observer, inverter=inverter,
@@ -242,12 +286,12 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None, carrier:
         actual_base_voltage = alpha_beta_voltage(base, actual_inverter,
             i_alpha_beta=(current_for_sensing.i_s_alpha, current_for_sensing.i_s_beta) if case.nonideal else None)
         aperture_scale = 1.0 + (float(np.clip(stimulus["sample_jitter"][k], -0.05, 0.05)) if case.nonideal else 0.0)
-        base_obs = true_saliency.current_increment(base_theta, *actual_base_voltage, cfg.base_dwell_s * aperture_scale, gain=gain) + np.asarray(stimulus["base_noise"][k])
+        base_obs = true_saliency.current_increment(base_theta, *actual_base_voltage, cfg.base_dwell_s * aperture_scale, gain=gain) + np.asarray(stimulus["base_noise"][k]) * noise_scale
         probe_obs = None
         if probe is not None:
             actual_probe_voltage = alpha_beta_voltage(probe, actual_inverter,
                 i_alpha_beta=(current_for_sensing.i_s_alpha, current_for_sensing.i_s_beta) if case.nonideal else None)
-            probe_obs = true_saliency.current_increment(base_theta, *actual_probe_voltage, cfg.probe_dwell_s * aperture_scale, gain=gain) + np.asarray(stimulus["probe_noise"][k])
+            probe_obs = true_saliency.current_increment(base_theta, *actual_probe_voltage, cfg.probe_dwell_s * aperture_scale, gain=gain) + np.asarray(stimulus["probe_noise"][k]) * noise_scale
         if case.nonideal:
             q = 0.001
             base_obs = np.round(base_obs / q) * q
@@ -314,7 +358,8 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None, carrier:
     ripple = trace - float(np.mean(trace))
     drift = np.polyfit(np.arange(len(steady)) * inverter.t_pwm_s, steady, 1)[0] if len(steady) > 1 else math.nan
     result = {
-        **asdict(case), "method": method, "period_deg": math.degrees(true_saliency.period_rad),
+        **asdict(case), "method": method, "fixed_probe_vector": fixed_probe_vector,
+        "period_deg": math.degrees(true_saliency.period_rad),
         "angle_mae_deg": float(np.mean(errors)), "angle_rmse_deg": float(np.sqrt(np.mean(np.square(errors)))),
         "angle_p95_deg": _p95(errors), "angle_p99_deg": float(np.quantile(errors, 0.99)),
         "angle_max_deg": max(errors), "full_angle_mae_deg": float(np.mean(full_errors)),
@@ -336,7 +381,7 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None, carrier:
         "probe_loss_fraction_of_input": probe_energy_j / positive_electrical_input_j if positive_electrical_input_j > 0 else math.nan,
         "compute_mean_us": float(np.mean(compute_us)), "compute_max_us": max(compute_us),
         "hypotheses": 0 if observer is None else int(observer.weights.size),
-        "candidate_sequences": 7 if method == "B3_sparse" else 6 if method.startswith("B3") else 1,
+        "candidate_sequences": 7 if method == "B3_sparse" else 6 if method.startswith(("B3", "B4")) else 1,
         "gateway_rejections": faults, "trace_theta_rad": true_theta_trace, "trace_estimate_rad": estimate_trace,
     }
     for mass in MASSES:
@@ -431,7 +476,7 @@ def _paired(rows: list[dict]) -> list[dict]:
                r["mismatch"], r["seed"], r["method"]): r for r in rows}
     grouped: dict[tuple, list[float]] = {}
     for row in rows:
-        if row["method"] not in ("B3_info_separation", "B3_info_renyi2", "B3_sparse", "B3_lag1", "B3_lag2", "B3_lag4", "B3_lag8"):
+        if row["method"] not in ("B3_info_separation", "B3_info_renyi2", "B3_info_fisher", "B3_info_bayes_risk", "B3_sparse", "B3_lag1", "B3_lag2", "B3_lag4", "B3_lag8"):
             continue
         key = (row["motor"], row["scenario"], row["speed_fraction"], row["strength"], row["nonideal"], row["mismatch"], row["seed"])
         fixed = lookup.get(key + ("B2_fixed_probe",))
@@ -563,7 +608,10 @@ def _plots(summary: list[dict], out: Path) -> None:
         svg.write_text("\n".join(line.rstrip() for line in data.splitlines()) + "\n", encoding="utf-8")
 
 
-def run_suite(suite: str, out: Path, *, seeds: int | None = None, steps: int | None = None, seed_offset: int = 0) -> dict:
+def run_suite(suite: str, out: Path, *, seeds: int | None = None, steps: int | None = None,
+              seed_offset: int = 0, observer_profile: str = "legacy") -> dict:
+    if observer_profile not in ("legacy", "dense", "robust"):
+        raise ValueError(observer_profile)
     out.mkdir(parents=True, exist_ok=True)
     cases = cases_for_suite(suite, seeds=seeds, steps=steps, seed_offset=seed_offset)
     methods = (("B2_fixed_probe", "B3_info_separation", "B3_lag1", "B3_lag2", "B3_lag4", "B3_lag8") if suite == "lag"
@@ -584,7 +632,8 @@ def run_suite(suite: str, out: Path, *, seeds: int | None = None, steps: int | N
             + np.asarray(stimulus["sample_jitter"]).tobytes()
         ).hexdigest()[:16]
         for method in methods:
-            result = run_trial(case, method, stimulus=stimulus, carrier=carrier)
+            result = run_trial(case, method, stimulus=stimulus, carrier=carrier,
+                               observer_profile=observer_profile)
             if representative is None and method == "B3_info_renyi2":
                 representative = {"case": asdict(case), "true_theta_rad": result["trace_theta_rad"],
                                   "estimate_modulo_rad": result["trace_estimate_rad"]}
@@ -601,7 +650,8 @@ def run_suite(suite: str, out: Path, *, seeds: int | None = None, steps: int | N
     payload = {
         "study": "Information-Optimal Coded PWM, host simulation only",
         "issue": "https://github.com/11lisov11/mic_theory/issues/1",
-        "suite": suite, "seed_offset": seed_offset, "case_count": len(cases), "trial_count": len(rows),
+        "suite": suite, "seed_offset": seed_offset, "observer_profile": observer_profile,
+        "case_count": len(cases), "trial_count": len(rows),
         "elapsed_s": perf_counter() - start, "phase_zero": phase_zero,
         "plant_extension": {"type": "unvalidated rotor-slot differential inductance sensor channel",
                             "harmonic": 28, "period_mechanical_deg": 360.0 / 28.0,
@@ -630,6 +680,7 @@ def main() -> None:
     parser.add_argument("--seeds", type=int, default=None)
     parser.add_argument("--steps", type=int, default=None)
     parser.add_argument("--seed-offset", type=int, default=0)
+    parser.add_argument("--observer-profile", choices=("legacy", "dense", "robust"), default="legacy")
     parser.add_argument("--plot-only", action="store_true", help="regenerate figures from an existing summary.json")
     parser.add_argument("--out", type=Path, default=ROOT / "experiments" / "info_optimal_coded_pwm" / "quick")
     args = parser.parse_args()
@@ -640,7 +691,8 @@ def main() -> None:
         _plots(payload["summary"], args.out)
         print(f"plots updated: {args.out}")
         return
-    payload = run_suite(args.suite, args.out, seeds=args.seeds, steps=args.steps, seed_offset=args.seed_offset)
+    payload = run_suite(args.suite, args.out, seeds=args.seeds, steps=args.steps,
+                        seed_offset=args.seed_offset, observer_profile=args.observer_profile)
     print(json.dumps({"suite": payload["suite"], "trial_count": payload["trial_count"],
                       "elapsed_s": payload["elapsed_s"], "verdict": payload["verdict_on_absolute_angle"]}, indent=2))
 

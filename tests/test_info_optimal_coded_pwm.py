@@ -9,12 +9,14 @@ import pytest
 
 from control.active_belief_rotor_observer import ActiveBeliefRotorObserver
 from control.info_optimal_coded_pwm import (
-    CodedPwmConfig, CodedSequence, average_voltage, choose_sequence, legal_sequence, make_sequence,
+    CodedPwmConfig, CodedSequence, average_voltage, choose_sequence, information_score,
+    legal_sequence, make_sequence,
 )
 from models.rotor_slot_saliency import SlotSaliency
-from models.two_level_inverter import TwoLevelInverterParams
+from models.two_level_inverter import TwoLevelInverterParams, alpha_beta_voltage
 from safety.ai_pwm_gateway import AIPwmSafetyGateway, GatewayLimits, has_shoot_through, transition_waveform
 from tools.run_info_optimal_coded_pwm_study import Case, METHODS, exogenous, phase_zero_check, run_suite, run_trial
+from tools.compare_coded_pwm_observers import compare
 
 
 def _gateway() -> AIPwmSafetyGateway:
@@ -132,6 +134,114 @@ def test_lag_smoother_normalizes_and_only_revises_past() -> None:
     assert 0 <= observer.map_angle(4) < observer.period_rad
 
 
+def test_robust_transport_preserves_mass_and_has_exact_adjoint() -> None:
+    observer = ActiveBeliefRotorObserver(
+        SlotSaliency(strength=0.2), noise_std_a=0.003,
+        speed_hypotheses=(-2.0, -1.0, 0.0, 1.0, 2.0),
+        angle_diffusion=0.003, speed_diffusion=0.001, gain_diffusion=0.001,
+    )
+    rng = np.random.default_rng(57)
+    a = rng.random(observer.weights.shape)
+    b = rng.random(observer.weights.shape)
+    forward = observer._transport(a, 100e-6)
+    backward = observer._transport(b, 100e-6, backward=True)
+    assert np.sum(forward) == pytest.approx(np.sum(a))
+    assert np.vdot(forward, b) == pytest.approx(np.vdot(a, backward), rel=1e-13)
+    for k in range(12):
+        observer.update((0.005 + k * 1e-5, 0.001), (80, 0), 5e-6, 100e-6)
+    assert np.sum(observer.angle_marginal(4)) == pytest.approx(1.0)
+
+
+def test_vectorized_transport_matches_per_speed_reference() -> None:
+    observer = ActiveBeliefRotorObserver(
+        SlotSaliency(strength=0.2), noise_std_a=0.003,
+        speed_hypotheses=(-20.0, -1.5, 0.0, 0.25, 5.0),
+    )
+    values = np.random.default_rng(73).random(observer.weights.shape)
+    for backward in (False, True):
+        reference = np.empty_like(values)
+        for j, speed in enumerate(observer.speeds):
+            shift = speed * 100e-6 / (observer.period_rad / len(observer.angles))
+            whole = math.floor(shift)
+            frac = shift - whole
+            direction = -1 if backward else 1
+            reference[:, j, :] = ((1.0 - frac) * np.roll(values[:, j, :], direction * whole, axis=0)
+                                  + frac * np.roll(values[:, j, :], direction * (whole + 1), axis=0))
+        np.testing.assert_allclose(observer._transport(values, 100e-6, backward=backward), reference,
+                                   rtol=0.0, atol=1e-15)
+
+
+def test_robust_profile_does_not_change_legacy_trial() -> None:
+    case = Case(seed=101, steps=40, speed_fraction=0.01)
+    legacy = run_trial(case, "B2_fixed_probe")
+    explicit_legacy = run_trial(case, "B2_fixed_probe", observer_profile="legacy")
+    dense = run_trial(case, "B2_fixed_probe", observer_profile="dense")
+    robust = run_trial(case, "B2_fixed_probe", observer_profile="robust")
+    assert legacy["angle_p95_deg"] == explicit_legacy["angle_p95_deg"]
+    assert dense["hypotheses"] == robust["hypotheses"]
+    assert robust["hypotheses"] > legacy["hypotheses"]
+    assert math.isfinite(robust["hpd95_coverage"])
+
+
+def test_robust_observer_cannot_create_angle_information_without_saliency() -> None:
+    observer = ActiveBeliefRotorObserver(
+        SlotSaliency(strength=0.0), noise_std_a=0.002,
+        speed_hypotheses=(-2.0, -1.0, 0.0, 1.0, 2.0),
+        angle_diffusion=0.003, speed_diffusion=0.001, gain_diffusion=0.001,
+    )
+    for _ in range(20):
+        observer.update((0.007, 0.001), (80, 0), 5e-6, 100e-6)
+    np.testing.assert_allclose(observer.angle_marginal(), np.full(48, 1.0 / 48.0), atol=1e-12)
+
+
+def test_probe_orientation_is_symmetric_only_with_isotropic_noise() -> None:
+    saliency = SlotSaliency(strength=0.15)
+    weights = np.random.default_rng(123).dirichlet(np.ones(48 * 7)).reshape(48, 7, 1)
+    inverter = TwoLevelInverterParams(Vdc=80)
+    for noise_axes, expected_equal in (((0.002, 0.002), True), ((0.002, 0.008), False)):
+        observer = ActiveBeliefRotorObserver(
+            saliency, noise_std_a=0.002, noise_std_axes_a=noise_axes,
+            gain_hypotheses=(1.0,),
+        )
+        observer.weights = weights.copy()
+        for method in ("separation", "renyi2", "fisher"):
+            scores = [information_score(observer, alpha_beta_voltage(vector, inverter), 5e-6, method)
+                      for vector in range(1, 7)]
+            if expected_equal:
+                assert max(scores) - min(scores) < 1e-12
+            else:
+                assert max(scores) - min(scores) > 1e-5
+
+
+def test_bayesian_risk_score_is_finite_and_sign_symmetric() -> None:
+    observer = ActiveBeliefRotorObserver(
+        SlotSaliency(strength=0.15), noise_std_a=0.002,
+        noise_std_axes_a=(0.002, 0.008), gain_hypotheses=(1.0,),
+    )
+    observer.weights = np.random.default_rng(321).dirichlet(np.ones(observer.weights.size)).reshape(observer.weights.shape)
+    inverter = TwoLevelInverterParams(Vdc=80)
+    scores = [information_score(observer, alpha_beta_voltage(vector, inverter), 5e-6, "bayes_risk")
+              for vector in range(1, 7)]
+    assert all(math.isfinite(score) for score in scores)
+    assert scores[0] == pytest.approx(scores[5], abs=1e-12)
+    assert scores[1] == pytest.approx(scores[4], abs=1e-12)
+    assert scores[2] == pytest.approx(scores[3], abs=1e-12)
+
+
+def test_anisotropic_trial_accepts_each_fixed_probe_without_truth_leak() -> None:
+    case = Case(seed=99, steps=20, measurement_noise_beta_ratio=4.0)
+    for vector in range(1, 7):
+        result = run_trial(case, "B2_fixed_probe", observer_profile="robust",
+                           fixed_probe_vector=vector)
+        assert math.isfinite(result["angle_p95_deg"])
+        assert result["fixed_probe_vector"] == vector
+    with pytest.raises(ValueError, match="fixed probe"):
+        run_trial(case, "B3_info_separation", fixed_probe_vector=1)
+    oracle = run_trial(case, "B4_oracle_fisher", observer_profile="robust")
+    assert oracle["candidate_sequences"] == 6
+    assert oracle["gateway_rejections"] == 0
+
+
 def test_trial_never_exceeds_gateway_limits_in_nominal_smoke() -> None:
     result = run_trial(Case(steps=40), "B3_info_renyi2")
     assert result["gateway_rejections"] == 0
@@ -148,3 +258,20 @@ def test_all_arms_share_exogenous_digest(tmp_path) -> None:
         key = (row["motor"], row["scenario"], row["strength"])
         by_case.setdefault(key, set()).add(row["stimulus_digest"])
     assert all(len(digests) == 1 for digests in by_case.values())
+
+
+def test_profile_comparison_rejects_unmatched_stimuli(tmp_path) -> None:
+    case = Case(seed=42, steps=8)
+    row = run_trial(case, "B2_fixed_probe")
+    row.pop("trace_theta_rad")
+    row.pop("trace_estimate_rad")
+    row["stimulus_digest"] = "original"
+    legacy = tmp_path / "legacy.csv"
+    robust = tmp_path / "robust.csv"
+    for path, digest in ((legacy, "original"), (robust, "different")):
+        with path.open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(handle, fieldnames=list(row))
+            writer.writeheader()
+            writer.writerow({**row, "stimulus_digest": digest})
+    with pytest.raises(ValueError, match="exogenous stimuli differ"):
+        compare(legacy, robust)

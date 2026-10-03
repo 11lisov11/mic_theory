@@ -1,0 +1,44 @@
+{
+  "study": "synthetic directional-noise coded-PWM hypothesis",
+  "observer_profile": "robust",
+  "motors": [
+    "AIR56",
+    "AL31"
+  ],
+  "ratio": 4.0,
+  "scenario": "standstill",
+  "arms": [
+    "B4_oracle_fisher"
+  ],
+  "seeds": 20,
+  "steps": 500,
+  "seed_offset": 13000,
+  "trial_count": 40,
+  "winner_selection_is_exploratory": true,
+  "winners": {},
+  "summary": [
+    {
+      "motor": "AIR56",
+      "arm": "B4_oracle_fisher",
+      "n": 20,
+      "angle_p95_deg": 2.065289028843836,
+      "hpd95_coverage": 0.9850999999999999,
+      "hpd95_width_deg": 4.919732142857143,
+      "torque_ripple_rms_nm": 5.067515764487626e-05,
+      "switches_per_s": 60010.0,
+      "compute_mean_us": 1004.6460499975638
+    },
+    {
+      "motor": "AL31",
+      "arm": "B4_oracle_fisher",
+      "n": 20,
+      "angle_p95_deg": 2.0442298333104776,
+      "hpd95_coverage": 0.9871000000000001,
+      "hpd95_width_deg": 4.873419642857143,
+      "torque_ripple_rms_nm": 4.7952969226723705e-05,
+      "switches_per_s": 60010.0,
+      "compute_mean_us": 1001.4641099960045
+    }
+  ],
+  "limitation": "No measured AIR56/AL31 current-noise covariance or rotor saliency"
+}

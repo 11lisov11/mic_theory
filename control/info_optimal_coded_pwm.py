@@ -29,6 +29,7 @@ class CodedPwmConfig:
     lambda_probe_energy: float = 0.01
     lambda_torque: float = 0.01
     mean_tolerance_v: float = 1e-10
+    reuse_opposite_probe_score: bool = False
 
 
 @dataclass(frozen=True)
@@ -105,17 +106,38 @@ def information_score(observer: ActiveBeliefRotorObserver, voltage: tuple[float,
         return 0.0
     predicted = observer.predict_response(voltage, dwell_s)
     weights = observer.weights
+    precision = 1.0 / np.square(observer.noise_std_axes_a)
     angle_mass = np.sum(weights, axis=(1, 2))
     angle_mean = np.sum(weights[..., None] * predicted, axis=(1, 2)) / np.maximum(angle_mass[:, None], 1e-300)
+    if method == "bayes_risk":
+        flat_weights = weights.ravel()
+        flat_prediction = predicted.reshape(-1, 2)
+        n_support = 8
+        support = np.searchsorted(np.cumsum(flat_weights), (np.arange(n_support) + 0.5) / n_support)
+        sigma = observer.noise_std_axes_a
+        offsets = math.sqrt(2.0) * np.asarray(((sigma[0], 0.0), (-sigma[0], 0.0),
+                                                (0.0, sigma[1]), (0.0, -sigma[1])))
+        outcomes = (flat_prediction[support, None, :] + offsets[None, :, :]).reshape(-1, 2)
+        residual = (outcomes[:, None, :] - flat_prediction[None, :, :]) / sigma
+        loglike = -0.5 * np.sum(residual * residual, axis=-1)
+        like = np.exp(loglike - np.max(loglike, axis=1, keepdims=True)) * flat_weights[None, :]
+        post = like / np.sum(like, axis=1, keepdims=True)
+        angle_post = np.sum(post.reshape(-1, *weights.shape), axis=(2, 3))
+        chosen = np.argmax(angle_post, axis=1)
+        true_bins = np.repeat(support // (weights.shape[1] * weights.shape[2]), len(offsets))
+        distance = np.abs(chosen - true_bins)
+        circular_bins = np.minimum(distance, weights.shape[0] - distance)
+        risk = float(np.mean(np.square(circular_bins * observer.period_rad / weights.shape[0])))
+        return -risk / (observer.period_rad**2 / 12.0)
     if method == "separation":
         mean = np.sum(angle_mass[:, None] * angle_mean, axis=0)
-        variance = np.sum(angle_mass[:, None] * (angle_mean - mean) ** 2)
-        return float(variance / (2.0 * observer.noise_std_a**2))
+        variance = np.sum(angle_mass[:, None] * (angle_mean - mean) ** 2 * precision)
+        return float(variance / 2.0)
     if method == "renyi2":
         # Pairwise Gaussian overlap approximates the reduction in collision
         # entropy of the angle marginal. Nuisance gain/speed are marginalized.
         delta = angle_mean[:, None, :] - angle_mean[None, :, :]
-        overlap = np.exp(-np.sum(delta * delta, axis=-1) / (4.0 * observer.noise_std_a**2))
+        overlap = np.exp(-np.sum(delta * delta * precision, axis=-1) / 4.0)
         collision = float(np.sum(angle_mass[:, None] * angle_mass[None, :] * overlap))
         return -math.log(max(collision, 1e-300))
     if method == "fisher":
@@ -127,8 +149,9 @@ def information_score(observer: ActiveBeliefRotorObserver, voltage: tuple[float,
         factor = dwell_s * observer.saliency.strength * observer.saliency.harmonic / observer.saliency.differential_inductance_h
         deriv_a = factor * (-s * va + c * vb)
         deriv_b = factor * (c * va + s * vb)
-        squared = (deriv_a**2 + deriv_b**2)[:, None, None] * observer.gains[None, None, :] ** 2
-        return float(np.sum(weights * squared) / observer.noise_std_a**2) * observer.period_rad**2 / 12.0
+        squared = (deriv_a**2 * precision[0] + deriv_b**2 * precision[1])[:, None, None]
+        squared = squared * observer.gains[None, None, :] ** 2
+        return float(np.sum(weights * squared)) * observer.period_rad**2 / 12.0
     raise ValueError(f"unknown information method: {method}")
 
 
@@ -146,6 +169,7 @@ def choose_sequence(
     limit = gateway.limits.i_soft_a
     baseline_score = -math.inf if force_probe else 0.0
     best = CodedSequence(reference.slots, None, baseline_score)
+    information_cache: dict[int, float] = {}
     for probe in range(1, 7):
         candidate = make_sequence(base_vector, probe, inverter, cfg)
         voltage = alpha_beta_voltage(probe, inverter)
@@ -157,7 +181,13 @@ def choose_sequence(
                               measured_i_abs=measured_i_abs, predicted_i_abs=predicted_i_abs,
                               tolerance_v=cfg.mean_tolerance_v):
             continue
-        info = information_score(observer, voltage, cfg.probe_dwell_s, cfg.information_method)
+        pair = min(probe, 7 - probe)
+        if cfg.reuse_opposite_probe_score and pair in information_cache:
+            info = information_cache[pair]
+        else:
+            info = information_score(observer, voltage, cfg.probe_dwell_s, cfg.information_method)
+            if cfg.reuse_opposite_probe_score:
+                information_cache[pair] = info
         previous = gateway.current_vector_id
         transitions = sum(switch_events(a, b) for a, b in zip((previous,) + tuple(v for v, _ in candidate.slots[:-1]), (v for v, _ in candidate.slots)))
         current_cost = (peak_increment / max(limit, 1e-12)) ** 2

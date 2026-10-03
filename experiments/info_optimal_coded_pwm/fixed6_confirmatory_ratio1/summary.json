@@ -1,0 +1,67 @@
+{
+  "study": "synthetic directional-noise coded-PWM hypothesis",
+  "observer_profile": "robust",
+  "motors": [
+    "AIR56",
+    "AL31"
+  ],
+  "ratio": 1.0,
+  "scenario": "standstill",
+  "arms": [
+    "cycle",
+    "fixed_6"
+  ],
+  "seeds": 20,
+  "steps": 500,
+  "seed_offset": 14000,
+  "trial_count": 80,
+  "winner_selection_is_exploratory": true,
+  "winners": {},
+  "summary": [
+    {
+      "motor": "AIR56",
+      "arm": "cycle",
+      "n": 20,
+      "angle_p95_deg": 0.7671751006938831,
+      "hpd95_coverage": 0.9792,
+      "hpd95_width_deg": 2.3322857142857143,
+      "torque_ripple_rms_nm": 9.588812202065886e-05,
+      "switches_per_s": 62280.0,
+      "compute_mean_us": 670.3656200017122
+    },
+    {
+      "motor": "AIR56",
+      "arm": "fixed_6",
+      "n": 20,
+      "angle_p95_deg": 0.7197097718918293,
+      "hpd95_coverage": 0.9837999999999999,
+      "hpd95_width_deg": 2.3190267857142857,
+      "torque_ripple_rms_nm": 0.00010135031528975277,
+      "switches_per_s": 64460.0,
+      "compute_mean_us": 682.2897600017313
+    },
+    {
+      "motor": "AL31",
+      "arm": "cycle",
+      "n": 20,
+      "angle_p95_deg": 0.7771693977844677,
+      "hpd95_coverage": 0.9831000000000001,
+      "hpd95_width_deg": 2.326151785714285,
+      "torque_ripple_rms_nm": 9.072205893776572e-05,
+      "switches_per_s": 61880.0,
+      "compute_mean_us": 627.6238899994951
+    },
+    {
+      "motor": "AL31",
+      "arm": "fixed_6",
+      "n": 20,
+      "angle_p95_deg": 0.7756058347061667,
+      "hpd95_coverage": 0.9789999999999999,
+      "hpd95_width_deg": 2.3142589285714283,
+      "torque_ripple_rms_nm": 9.590593845344736e-05,
+      "switches_per_s": 64140.0,
+      "compute_mean_us": 623.1068400029926
+    }
+  ],
+  "limitation": "No measured AIR56/AL31 current-noise covariance or rotor saliency"
+}
