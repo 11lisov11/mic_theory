@@ -83,6 +83,51 @@ def test_noise_miscalibration_is_separate_from_actual_stimulus() -> None:
         run_trial(case, "B2_fixed_probe", assumed_noise_beta_ratio=0.0)
 
 
+def test_noise_likelihood_mixture_normalizes_and_singleton_matches_existing_filter() -> None:
+    saliency = SlotSaliency(strength=0.15)
+    kwargs = {"noise_std_a": 0.002, "speed_hypotheses": (-1.0, 0.0, 1.0)}
+    standard = ActiveBeliefRotorObserver(saliency, noise_std_axes_a=(0.002, 0.008), **kwargs)
+    singleton = ActiveBeliefRotorObserver(saliency, noise_beta_ratio_candidates=(4.0,), **kwargs)
+    forward = ActiveBeliefRotorObserver(saliency, noise_beta_ratio_candidates=(1.0, 4.0), **kwargs)
+    reversed_order = ActiveBeliefRotorObserver(saliency, noise_beta_ratio_candidates=(4.0, 1.0), **kwargs)
+    observations = [((0.004, -0.005), (80.0, 0.0), 10e-6),
+                    ((0.003, 0.002), (40.0, 60.0), 5e-6)]
+    for observer in (standard, singleton, forward, reversed_order):
+        observer.update_observations(observations, 100e-6)
+        assert np.sum(observer.weights) == pytest.approx(1.0)
+    np.testing.assert_allclose(standard.weights, singleton.weights, atol=1e-14)
+    np.testing.assert_allclose(forward.weights, reversed_order.weights, atol=1e-14)
+    assert not np.allclose(forward.weights, standard.weights)
+
+
+@pytest.mark.parametrize("candidates", [(), (0.0,), (math.nan,), (math.inf,)])
+def test_invalid_noise_mixture_hypotheses_are_rejected(candidates: tuple[float, ...]) -> None:
+    with pytest.raises(ValueError):
+        ActiveBeliefRotorObserver(SlotSaliency(strength=0.15), noise_std_a=0.002,
+                                  noise_beta_ratio_candidates=candidates)
+
+
+def test_likelihood_tempering_reduces_one_update_concentration() -> None:
+    saliency = SlotSaliency(strength=0.15)
+    standard = ActiveBeliefRotorObserver(saliency, noise_std_a=0.002,
+                                         noise_beta_ratio_candidates=(1.0, 4.0))
+    tempered = ActiveBeliefRotorObserver(saliency, noise_std_a=0.002,
+                                         noise_beta_ratio_candidates=(1.0, 4.0),
+                                         likelihood_temperature=4.0)
+    observations = [((0.004, -0.005), (80.0, 0.0), 10e-6)]
+    standard.update_observations(observations, 100e-6)
+    tempered.update_observations(observations, 100e-6)
+    assert np.max(tempered.weights) < np.max(standard.weights)
+    assert np.sum(tempered.weights) == pytest.approx(1.0)
+
+
+@pytest.mark.parametrize("temperature", [0.0, 0.9, math.nan, math.inf])
+def test_invalid_likelihood_temperatures_are_rejected(temperature: float) -> None:
+    with pytest.raises(ValueError):
+        ActiveBeliefRotorObserver(SlotSaliency(strength=0.15), noise_std_a=0.002,
+                                  likelihood_temperature=temperature)
+
+
 @pytest.mark.parametrize("invalid", [0.0, -1.0, math.nan, math.inf])
 def test_nonfinite_or_nonpositive_noise_parameters_are_rejected(invalid: float) -> None:
     with pytest.raises(ValueError):

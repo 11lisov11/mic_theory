@@ -166,7 +166,9 @@ def _speed_hypotheses(case: Case, rated_rad_s: float) -> tuple[float, ...]:
 def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
               carrier: tuple[list[int], list[float]] | None = None,
               observer_profile: str = "legacy", fixed_probe_vector: int | None = None,
-              assumed_noise_beta_ratio: float | None = None) -> dict:
+              assumed_noise_beta_ratio: float | None = None,
+              noise_beta_ratio_candidates: tuple[float, ...] | None = None,
+              likelihood_temperature: float = 1.0) -> dict:
     if method not in METHODS:
         raise ValueError(method)
     if observer_profile not in ("legacy", "dense", "robust"):
@@ -199,7 +201,9 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
         true_saliency, noise_std_a=case.noise_std_a,
         noise_std_axes_a=(case.noise_std_a, case.noise_std_a * (
             case.measurement_noise_beta_ratio if assumed_noise_beta_ratio is None else assumed_noise_beta_ratio)),
-        speed_hypotheses=speed_grid, **observer_kwargs,
+        speed_hypotheses=speed_grid, noise_beta_ratio_candidates=noise_beta_ratio_candidates,
+        likelihood_temperature=likelihood_temperature,
+        **observer_kwargs,
     ) if method != "B0_model_only" else None
     cfg = CodedPwmConfig(information_method={"B3_info_renyi2": "renyi2", "B3_info_fisher": "fisher",
                                                "B3_info_bayes_risk": "bayes_risk"}.get(method, "separation"),

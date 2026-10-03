@@ -230,6 +230,71 @@ Tuning it on `18000-18019` would invalidate this holdout. Neither angle P95
 nor coverage here measures absolute rotor position; the slot response is
 still an unvalidated, periodic host extension.
 
+### Noise-uncertainty mixture and conservative posterior
+
+The follow-up observer marginalizes two **assumed**, equally weighted beta/
+alpha noise ratios (`1` and `4`) for each PWM observation block. It does not
+read the simulated physical ratio or true angle. Its fixed six-direction
+probe sequence is unchanged. The four predeclared arms were the matched and
+wrong single-noise likelihoods (the former is an evaluation-only oracle),
+the mixture, and the matched six-direction cycle. On fresh seeds
+`20000-20019` (20 per motor/physical-noise cell, 50 ms each), the mixture
+reduced mean per-seed modulo-angle P95 by `33-40%` relative to the **wrong**
+single-noise likelihood. All four unadjusted paired-seed bootstrap 95%
+intervals for this relative reduction excluded zero. Relative to the
+matched single-noise likelihood, however, the mixture was generally worse;
+this is robustness to one calibration error, not superiority to knowing the
+sensor noise. Neither the mixture nor the matched filter gave reliable
+nominal 95% credible-set coverage under combined motor mismatch.
+
+| Motor | Physical beta/alpha noise | P95 wrong / mixture / matched (deg) | Mixture 95%-set coverage |
+|---|---:|---:|---:|
+| AIR56 | 1 | 2.66 / 1.48 / 1.47 | 92% |
+| AIR56 | 4 | 5.17 / 3.18 / 2.87 | 78% |
+| AL31 | 1 | 2.60 / 1.61 / 1.52 | 93% |
+| AL31 | 4 | 4.94 / 3.17 / 2.95 | 79% |
+
+To address undercoverage, a separate **development** sweep on seeds
+`19000-19019` tested likelihood temperatures `T=1,2,4,8` for the mixture.
+The selection rule was recorded before inspecting this sweep: choose the
+smallest temperature with mean coverage at least 90% and mean P95 no more
+than 20% above `T=1` in **each** of the four motor/noise cells; otherwise
+reject tempering. `T=2` was the first passing candidate. It was then frozen
+and compared only with `T=1` on untouched seeds `21000-21019`:
+
+| Motor | Physical noise ratio | Coverage T=1 -> T=2 | P95 T=1 -> T=2 (deg) | Set-width increase |
+|---|---:|---:|---:|---:|
+| AIR56 | 1 | 89% -> 97% | 1.60 -> 1.56 | 33% |
+| AIR56 | 4 | 86% -> 97% | 2.39 -> 2.29 | 34% |
+| AL31 | 1 | 94% -> 98% | 1.52 -> 1.38 | 31% |
+| AL31 | 4 | 80% -> 94% | 2.40 -> 2.26 | 29% |
+
+Tempering improved descriptive coverage in every held-out cell without
+increasing mean P95, but the credible sets became about `29-34%` wider.
+The AL31/noise-4 cell remained below the nominal 95% target. P95 paired
+bootstrap intervals exclude zero only in the two AL31 cells; no multiple-
+comparison correction or guarantee outside this synthetic standstill setup
+is implied. In particular, neither 94% nor 98% observed coverage establishes
+calibration under new motors, loads, temperatures or sensor failures.
+The mixture took roughly `650-705 us` per step in the Python host test,
+compared with `470-509 us` for the matching single-noise filter. Both exceed
+the model's `100 us` PWM period; these machine-dependent timings do **not**
+constitute a real-time firmware implementation or deadline proof.
+
+Reproduce all three paired files without touching equipment:
+
+```powershell
+python tools/study_coded_pwm_noise_mixture.py --seed-offset 20000 --seeds 20 --steps 500 --out experiments/info_optimal_coded_pwm/noise_mixture_holdout
+python tools/study_coded_pwm_noise_tempering.py --seed-offset 19000 --seeds 20 --steps 500 --out experiments/info_optimal_coded_pwm/noise_temperature_development
+python tools/study_coded_pwm_noise_tempering.py --seed-offset 21000 --seeds 20 --steps 500 --temperatures 1 2 --out experiments/info_optimal_coded_pwm/noise_temperature_holdout
+python -m pytest tests/test_coded_pwm_noise_mixture.py tests/test_coded_pwm_noise_tempering.py tests/test_info_optimal_coded_pwm.py -q -p no:cacheprovider
+```
+
+All `800` rows across these three files have common exogenous draws within
+their 240 paired motor/noise/seed groups and zero gateway rejections. This is
+only a host-model result for an **assumed** 28-period slot signature, not
+measured sensorless operation or permission to energize the inverter.
+
 ![Paired-seed ablation, monochrome](../experiments/info_optimal_coded_pwm/blind_smoke/angle_p95_ablation_ci.png)
 
 ![Accuracy-switching tradeoff, monochrome](../experiments/info_optimal_coded_pwm/blind_smoke/pareto_switching.png)

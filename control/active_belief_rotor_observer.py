@@ -28,6 +28,8 @@ class ActiveBeliefRotorObserver:
         angle_diffusion: float = 0.0,
         speed_diffusion: float = 0.0,
         gain_diffusion: float = 0.0,
+        noise_beta_ratio_candidates: tuple[float, ...] | None = None,
+        likelihood_temperature: float = 1.0,
     ) -> None:
         if noise_std_a <= 0 or n_angle < 8 or not speed_hypotheses or not gain_hypotheses:
             raise ValueError("invalid observer grid or noise")
@@ -39,9 +41,18 @@ class ActiveBeliefRotorObserver:
             raise ValueError("speed hypotheses must be sorted and unique")
         if tuple(sorted(set(gain_hypotheses))) != gain_hypotheses:
             raise ValueError("gain hypotheses must be sorted and unique")
+        if noise_beta_ratio_candidates is not None and (
+            not noise_beta_ratio_candidates
+            or any(not math.isfinite(value) or value <= 0.0 for value in noise_beta_ratio_candidates)
+        ):
+            raise ValueError("noise-ratio candidates must be finite and positive")
+        if not math.isfinite(likelihood_temperature) or likelihood_temperature < 1.0:
+            raise ValueError("likelihood temperature must be finite and at least one")
         self.saliency = saliency
         self.noise_std_a = float(noise_std_a)
         self.noise_std_axes_a = np.asarray(noise_std_axes_a or (noise_std_a, noise_std_a), dtype=float)
+        self.noise_beta_ratio_candidates = noise_beta_ratio_candidates
+        self.likelihood_temperature = float(likelihood_temperature)
         self.angles = np.arange(n_angle, dtype=float) * saliency.period_rad / n_angle
         self.speeds = np.asarray(speed_hypotheses, dtype=float)
         self.gains = np.asarray(gain_hypotheses, dtype=float)
@@ -107,11 +118,27 @@ class ActiveBeliefRotorObserver:
         if not observations:
             raise ValueError("at least one measurement is required")
         prior = self._transport(self.weights, dt_s)
-        log_like = np.zeros_like(prior)
-        for measurement, voltage, dwell_s in observations:
-            pred = self.predict_response(voltage, dwell_s)
-            innovation = pred - np.asarray(measurement, dtype=float)
-            log_like -= 0.5 * np.sum((innovation / self.noise_std_axes_a) ** 2, axis=-1)
+        if self.noise_beta_ratio_candidates is None:
+            log_like = np.zeros_like(prior)
+            for measurement, voltage, dwell_s in observations:
+                pred = self.predict_response(voltage, dwell_s)
+                innovation = pred - np.asarray(measurement, dtype=float)
+                log_like -= 0.5 * np.sum((innovation / self.noise_std_axes_a) ** 2, axis=-1)
+        else:
+            component_logs = []
+            for ratio in self.noise_beta_ratio_candidates:
+                sigma = np.asarray((self.noise_std_a, self.noise_std_a * ratio))
+                component = np.full_like(prior, -len(observations) * math.log(ratio))
+                for measurement, voltage, dwell_s in observations:
+                    pred = self.predict_response(voltage, dwell_s)
+                    innovation = pred - np.asarray(measurement, dtype=float)
+                    component -= 0.5 * np.sum((innovation / sigma) ** 2, axis=-1)
+                component_logs.append(component)
+            components = np.stack(component_logs)
+            pivot = np.max(components, axis=0)
+            log_like = pivot + np.log(np.sum(np.exp(components - pivot), axis=0))
+        if self.likelihood_temperature != 1.0:
+            log_like /= self.likelihood_temperature
         like = np.exp(log_like - np.max(log_like))
         post = prior * like
         norm = float(np.sum(post))
