@@ -274,6 +274,7 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
     true_theta_trace: list[float] = []
     estimate_trace: list[float] = []
     posterior_trace: list[list[float]] = []
+    predictive_surprise_trace: list[float] = []
     speed_diffusion_schedule = CommandSlewDiffusion() if command_slew_speed_diffusion else None
     acquisition_step: int | None = None
     good_run = 0
@@ -389,6 +390,8 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
             observer.update_observations(observations, inverter.t_pwm_s)
             if capture_posterior_trace:
                 posterior_trace.append(observer.angle_marginal().tolist())
+                predictive_surprise_trace.append(
+                    -observer.last_predictive_log_evidence / len(observations))
             lag = min(int(method.split("lag")[-1]), len(observer.history) - 1) if method.startswith("B3_lag") else 0
             estimate = observer.map_angle(lag)
             speed_hat = float(np.sum(observer.weights * observer.speeds[None, :, None]))
@@ -453,6 +456,7 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
                                                        map(float, observer.noise_mode_probabilities())))
     if capture_posterior_trace:
         result["trace_angle_marginal"] = posterior_trace
+        result["trace_predictive_surprise"] = predictive_surprise_trace
     return result
 
 

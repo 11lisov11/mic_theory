@@ -652,6 +652,45 @@ python tools/study_coded_pwm_command_slew.py --seed-offset 35000 --out experimen
 python -m pytest tests/test_command_slew_diffusion.py tests/test_coded_pwm_command_slew.py -q -p no:cacheprovider
 ```
 
+### Predictive surprise does not rescue confident errors
+
+The next hypothesis was that a wrong, narrow angle posterior would
+assign low likelihood to the next measured current increment. The
+observer now exposes the prior-weighted log evidence of its *tempered,
+unnormalized* measurement likelihood. Gaussian normalization constants
+are omitted; the logged value is a relative surprise score, not a
+calibrated probability. It is computed from commanded probe voltages,
+measured increments and the prior belief only. The working observer
+and PWM sequence are unchanged; truth labels appear only in offline
+evaluation.
+
+A pilot at seed `36000` was inspected before freezing the direction of
+the score. The independent holdout used `36100-36119`, 240 trials of
+the command-slew observer across AIR56/AL31, constant/ramp/reversal
+and physical noise ratios `3,8`. Within each trial, the frozen width
+gate first selected its usual steps. A second stage kept half of those
+steps with the *lowest* surprise. Entropy and random selectors kept
+the same count within the same first-stage set. This full-trial ranking
+is an offline diagnostic of the feature, not an implementable causal
+threshold.
+
+Second-stage availability averaged only 12.6% of all steps. The
+seed-group mean of `(matched random bad count - surprise bad count) /
+second-stage count` was -0.35 percentage points (bootstrap 95%
+interval -0.73 to +0.003). The entropy-minus-surprise comparison was
+-1.81 points (-3.67 to +0.04). Neither interval establishes an
+advantage for surprise; point estimates were unfavorable. In the
+AL31/reversal/noise-ratio-8 cell, 45.8% of surprise-selected steps
+still had >2-degree modulo error. A simple predictive-residual alarm
+cannot be claimed to detect the confident errors seen here. This does
+not rule out independently validated, richer model-discrepancy tests,
+but it rejects this particular score as a release criterion.
+
+```powershell
+python tools/study_coded_pwm_predictive_surprise.py --seed-offset 36100 --out experiments/info_optimal_coded_pwm/predictive_surprise_holdout
+python -m pytest tests/test_predictive_rotor_surprise.py tests/test_coded_pwm_predictive_surprise.py -q -p no:cacheprovider
+```
+
 ![Paired-seed ablation, monochrome](../experiments/info_optimal_coded_pwm/blind_smoke/angle_p95_ablation_ci.png)
 
 ![Accuracy-switching tradeoff, monochrome](../experiments/info_optimal_coded_pwm/blind_smoke/pareto_switching.png)

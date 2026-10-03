@@ -59,6 +59,8 @@ class ActiveBeliefRotorObserver:
         self.angle_diffusion = float(angle_diffusion)
         self.speed_diffusion = float(speed_diffusion)
         self.gain_diffusion = float(gain_diffusion)
+        # Relative evidence of the tempered likelihood; Gaussian constants are omitted.
+        self.last_predictive_log_evidence: float | None = None
         self.weights = np.full((n_angle, len(self.speeds), len(self.gains)), 1.0 / (n_angle * len(self.speeds) * len(self.gains)))
         self.history: deque[tuple[np.ndarray, np.ndarray, float]] = deque(maxlen=max_lag + 1)
 
@@ -139,11 +141,13 @@ class ActiveBeliefRotorObserver:
             log_like = pivot + np.log(np.sum(np.exp(components - pivot), axis=0))
         if self.likelihood_temperature != 1.0:
             log_like /= self.likelihood_temperature
-        like = np.exp(log_like - np.max(log_like))
+        log_like_max = float(np.max(log_like))
+        like = np.exp(log_like - log_like_max)
         post = prior * like
         norm = float(np.sum(post))
         if norm <= 0.0 or not math.isfinite(norm):
             raise FloatingPointError("posterior normalization failed")
+        self.last_predictive_log_evidence = log_like_max + math.log(norm)
         self.weights = post / norm
         self.history.append((self.weights.copy(), like.copy(), dt_s))
 
