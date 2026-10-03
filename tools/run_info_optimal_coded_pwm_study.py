@@ -174,6 +174,7 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
               persistent_noise_ratios: tuple[float, ...] | None = None,
               student_t_beta_df: float | None = None,
               student_t_beta_scale_ratio: float = 2.0,
+              speed_diffusion_override: float | None = None,
               capture_posterior_trace: bool = False) -> dict:
     if method not in METHODS:
         raise ValueError(method)
@@ -194,6 +195,11 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
         or persistent_noise_ratios is not None
     ):
         raise ValueError("Student-t noise is exclusive to the B2 fixed-probe experiment")
+    if speed_diffusion_override is not None and (
+        observer_profile != "robust" or not math.isfinite(speed_diffusion_override)
+        or not 0.0 <= speed_diffusion_override <= 0.5
+    ):
+        raise ValueError("speed diffusion override requires a robust profile and probability in [0, 0.5]")
     env = MOTORS[case.motor]
     params = AlphaBetaMotorParams.from_motor_params(env.motor)
     inverter = TwoLevelInverterParams(Vdc=case.vdc, f_pwm=10_000.0, dead_time_s=1e-6,
@@ -210,6 +216,8 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
     if observer_profile == "robust":
         observer_kwargs = {"angle_diffusion": 0.003, "speed_diffusion": 0.001,
                            "gain_diffusion": 0.001}
+        if speed_diffusion_override is not None:
+            observer_kwargs["speed_diffusion"] = speed_diffusion_override
     if method == "B0_model_only":
         observer = None
     elif persistent_noise_ratios is not None:

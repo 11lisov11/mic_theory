@@ -596,6 +596,29 @@ python tools/study_coded_pwm_confidence_transfer.py --seed-offset 33000 --out ex
 python -m pytest tests/test_coded_pwm_confidence_transfer.py -q -p no:cacheprovider
 ```
 
+### Speed-transition diffusion: motion gain, steady-state cost
+
+A separate preselected test changed only the observer's transition
+probability between neighboring speed hypotheses from `0.001` to `0.05`.
+The fixed probe, noise draws, prescribed trajectories, likelihood and
+all motor parameters were identical within each pair. On fresh seed
+groups `34000-34019` (240 pairs across AIR56/AL31, physical noise
+ratios `3,8`, constant speed/ramp/reversal), the predeclared primary
+endpoint was the fraction of **all** steps with modulo error >2 degrees,
+not a selective risk after abstention. On ramp/reversal, baseline minus
+candidate error was +1.16 percentage points (seed-group bootstrap 95%
+interval +0.16 to +2.14). On constant speed it was -3.41 points
+(-4.58 to -2.19): the more diffusive observer was worse. The frozen
+width gate also accepted substantially fewer steps with high diffusion
+(e.g. AIR56 constant/noise ratio 3: 28.0% -> 13.5%). The change is
+**not** a global improvement and is not promoted to firmware. It
+motivates a command-slew-conditioned transition tested on a new holdout.
+
+```powershell
+python tools/study_coded_pwm_speed_diffusion.py --seed-offset 34000 --out experiments/info_optimal_coded_pwm/speed_diffusion_holdout
+python -m pytest tests/test_coded_pwm_speed_diffusion.py -q -p no:cacheprovider
+```
+
 ![Paired-seed ablation, monochrome](../experiments/info_optimal_coded_pwm/blind_smoke/angle_p95_ablation_ci.png)
 
 ![Accuracy-switching tradeoff, monochrome](../experiments/info_optimal_coded_pwm/blind_smoke/pareto_switching.png)
