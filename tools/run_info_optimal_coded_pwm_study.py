@@ -165,13 +165,18 @@ def _speed_hypotheses(case: Case, rated_rad_s: float) -> tuple[float, ...]:
 
 def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
               carrier: tuple[list[int], list[float]] | None = None,
-              observer_profile: str = "legacy", fixed_probe_vector: int | None = None) -> dict:
+              observer_profile: str = "legacy", fixed_probe_vector: int | None = None,
+              assumed_noise_beta_ratio: float | None = None) -> dict:
     if method not in METHODS:
         raise ValueError(method)
     if observer_profile not in ("legacy", "dense", "robust"):
         raise ValueError(observer_profile)
-    if case.measurement_noise_beta_ratio <= 0:
-        raise ValueError("measurement noise ratio must be positive")
+    if not math.isfinite(case.noise_std_a) or case.noise_std_a <= 0:
+        raise ValueError("measurement noise standard deviation must be finite and positive")
+    if not math.isfinite(case.measurement_noise_beta_ratio) or case.measurement_noise_beta_ratio <= 0:
+        raise ValueError("measurement noise ratio must be finite and positive")
+    if assumed_noise_beta_ratio is not None and (not math.isfinite(assumed_noise_beta_ratio) or assumed_noise_beta_ratio <= 0):
+        raise ValueError("assumed noise ratio must be finite and positive")
     if fixed_probe_vector is not None and (method != "B2_fixed_probe" or fixed_probe_vector not in range(1, 7)):
         raise ValueError("fixed probe vector must be 1..6 for B2")
     env = MOTORS[case.motor]
@@ -192,7 +197,8 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
                            "gain_diffusion": 0.001}
     observer = ActiveBeliefRotorObserver(
         true_saliency, noise_std_a=case.noise_std_a,
-        noise_std_axes_a=(case.noise_std_a, case.noise_std_a * case.measurement_noise_beta_ratio),
+        noise_std_axes_a=(case.noise_std_a, case.noise_std_a * (
+            case.measurement_noise_beta_ratio if assumed_noise_beta_ratio is None else assumed_noise_beta_ratio)),
         speed_hypotheses=speed_grid, **observer_kwargs,
     ) if method != "B0_model_only" else None
     cfg = CodedPwmConfig(information_method={"B3_info_renyi2": "renyi2", "B3_info_fisher": "fisher",

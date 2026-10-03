@@ -187,6 +187,49 @@ probability. The original long, multi-seed fixed-versus-adaptive comparisons
 remain the relevant accuracy evidence; they still do not show a robust
 adaptive advantage.
 
+### Held-out current-noise miscalibration
+
+A new, **frozen-before-inspection** synthetic test used seeds `18000-18019`,
+50 ms per trial, AIR56 and AL31 at standstill, a nonideal inverter and the
+combined `Rs/Rr/Lm` mismatch. The *physical* beta/alpha current-noise ratio
+was `1` or `4`; independently, the observer assumed `1` or `4`. Thus both
+matched and mismatched likelihoods were compared on the same exogenous draws.
+The three predeclared arms were a six-direction cycle, `fixed_6` (a strong
+fixed direction suggested by earlier data, then evaluated on these fresh
+seeds), and Fisher-adaptive probes. The 480 trial rows are paired by motor,
+physical ratio and seed; their stimulus hashes agree across arms and assumed
+ratios. There were no gateway rejections.
+
+Switching from the wrong to the matching noise ratio reduced per-seed modulo
+angle P95 by `31.1-52.1%` across the 12 motor/ratio/arm comparisons. All
+12 *unadjusted* seed-bootstrap 95% intervals had positive lower endpoints
+(`20.7-45.1%` across cells). This demonstrates sensitivity to likelihood
+calibration **inside the assumed model**, not an available online method of
+knowing the true sensor noise. The joint motor-model mismatch remains present
+in both sides of every pair.
+
+Fisher-adaptive probes had a worse mean paired P95 than `fixed_6` in all eight
+motor/physical-ratio/assumed-ratio cells. The relative changes ranged from
+`-2.5%` to `-24.1%`; several individual unadjusted intervals exclude zero,
+but no familywise or world-general claim is made. Across the matched cells,
+nominal 95% credible-set coverage was only `60.9-93.8%` for Fisher, and
+`85.7-91.2%` for `fixed_6`. With a wrong noise ratio, some cells dropped to
+about `40-50%` coverage. Consequently **none** of these posterior sets can be
+advertised as validated 95% bounds under combined degradation.
+
+Reproduce the paired evidence:
+
+```powershell
+python tools/study_coded_pwm_noise_miscalibration.py --seed-offset 18000 --seeds 20 --steps 500 --out experiments/info_optimal_coded_pwm/noise_miscalibration_holdout
+python -m pytest tests/test_coded_pwm_noise_miscalibration.py -q -p no:cacheprovider
+```
+
+The next hypothesis is a noise-uncertainty likelihood or a drift gate fitted
+on separate development seeds and tested on a **new** untouched range.
+Tuning it on `18000-18019` would invalidate this holdout. Neither angle P95
+nor coverage here measures absolute rotor position; the slot response is
+still an unvalidated, periodic host extension.
+
 ![Paired-seed ablation, monochrome](../experiments/info_optimal_coded_pwm/blind_smoke/angle_p95_ablation_ci.png)
 
 ![Accuracy-switching tradeoff, monochrome](../experiments/info_optimal_coded_pwm/blind_smoke/pareto_switching.png)

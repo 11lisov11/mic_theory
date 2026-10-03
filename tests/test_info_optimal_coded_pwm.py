@@ -68,6 +68,29 @@ def test_fisher_quadratic_matches_direct_state_sum(noise_ratio: float) -> None:
         assert opposite == pytest.approx(actual, rel=1e-12, abs=1e-12)
 
 
+def test_noise_miscalibration_is_separate_from_actual_stimulus() -> None:
+    case = Case(seed=17777, steps=8, strength=0.15, measurement_noise_beta_ratio=4.0)
+    stimulus = exogenous(case)
+    matched = run_trial(case, "B2_fixed_probe", stimulus=stimulus,
+                        observer_profile="robust", assumed_noise_beta_ratio=4.0)
+    default = run_trial(case, "B2_fixed_probe", stimulus=stimulus, observer_profile="robust")
+    mismatched = run_trial(case, "B2_fixed_probe", stimulus=stimulus,
+                           observer_profile="robust", assumed_noise_beta_ratio=1.0)
+    assert matched["angle_p95_deg"] == pytest.approx(default["angle_p95_deg"])
+    assert matched["torque_ripple_rms_nm"] == pytest.approx(mismatched["torque_ripple_rms_nm"])
+    assert matched["switches_per_s"] == mismatched["switches_per_s"]
+    with pytest.raises(ValueError):
+        run_trial(case, "B2_fixed_probe", assumed_noise_beta_ratio=0.0)
+
+
+@pytest.mark.parametrize("invalid", [0.0, -1.0, math.nan, math.inf])
+def test_nonfinite_or_nonpositive_noise_parameters_are_rejected(invalid: float) -> None:
+    with pytest.raises(ValueError):
+        run_trial(Case(steps=6, noise_std_a=invalid), "B2_fixed_probe")
+    with pytest.raises(ValueError):
+        run_trial(Case(steps=6, measurement_noise_beta_ratio=invalid), "B2_fixed_probe")
+
+
 def test_observer_api_cannot_receive_truth_and_identical_measurements_give_identical_posteriors() -> None:
     signature = inspect.signature(ActiveBeliefRotorObserver.update_observations)
     assert not ({"theta_m", "omega_m", "true_angle", "true_speed", "measured_state"} & set(signature.parameters))
