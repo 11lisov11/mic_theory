@@ -101,9 +101,30 @@ def legal_sequence(
     return True
 
 
+def _fisher_quadratic(observer: ActiveBeliefRotorObserver, dwell_s: float) -> tuple[float, float, float]:
+    phase = observer.saliency.harmonic * observer.angles
+    c, s = np.cos(phase), np.sin(phase)
+    weighted_mass = np.sum(observer.weights * np.square(observer.gains)[None, None, :], axis=(1, 2))
+    precision_a, precision_b = 1.0 / np.square(observer.noise_std_axes_a)
+    scale = (dwell_s * observer.saliency.strength * observer.saliency.harmonic /
+             observer.saliency.differential_inductance_h) ** 2 * observer.period_rad**2 / 12.0
+    aa = scale * np.sum(weighted_mass * (s * s * precision_a + c * c * precision_b))
+    ab = scale * np.sum(weighted_mass * (s * c * (precision_b - precision_a)))
+    bb = scale * np.sum(weighted_mass * (c * c * precision_a + s * s * precision_b))
+    return float(aa), float(ab), float(bb)
+
+
+def _fisher_from_quadratic(quadratic: tuple[float, float, float], voltage: tuple[float, float]) -> float:
+    aa, ab, bb = quadratic
+    va, vb = voltage
+    return aa * va * va + 2.0 * ab * va * vb + bb * vb * vb
+
+
 def information_score(observer: ActiveBeliefRotorObserver, voltage: tuple[float, float], dwell_s: float, method: str) -> float:
     if observer.saliency.strength == 0:
         return 0.0
+    if method == "fisher":
+        return _fisher_from_quadratic(_fisher_quadratic(observer, dwell_s), voltage)
     predicted = observer.predict_response(voltage, dwell_s)
     weights = observer.weights
     precision = 1.0 / np.square(observer.noise_std_axes_a)
@@ -140,18 +161,6 @@ def information_score(observer: ActiveBeliefRotorObserver, voltage: tuple[float,
         overlap = np.exp(-np.sum(delta * delta * precision, axis=-1) / 4.0)
         collision = float(np.sum(angle_mass[:, None] * angle_mass[None, :] * overlap))
         return -math.log(max(collision, 1e-300))
-    if method == "fisher":
-        # Local Fisher information about mechanical angle, not a global
-        # identifiability certificate; the slot-pitch ambiguity remains.
-        va, vb = voltage
-        phase = observer.saliency.harmonic * observer.angles
-        c, s = np.cos(phase), np.sin(phase)
-        factor = dwell_s * observer.saliency.strength * observer.saliency.harmonic / observer.saliency.differential_inductance_h
-        deriv_a = factor * (-s * va + c * vb)
-        deriv_b = factor * (c * va + s * vb)
-        squared = (deriv_a**2 * precision[0] + deriv_b**2 * precision[1])[:, None, None]
-        squared = squared * observer.gains[None, None, :] ** 2
-        return float(np.sum(weights * squared)) * observer.period_rad**2 / 12.0
     raise ValueError(f"unknown information method: {method}")
 
 
@@ -170,6 +179,7 @@ def choose_sequence(
     baseline_score = -math.inf if force_probe else 0.0
     best = CodedSequence(reference.slots, None, baseline_score)
     information_cache: dict[int, float] = {}
+    fisher_quadratic = _fisher_quadratic(observer, cfg.probe_dwell_s) if cfg.information_method == "fisher" and observer.saliency.strength != 0 else None
     for probe in range(1, 7):
         candidate = make_sequence(base_vector, probe, inverter, cfg)
         voltage = alpha_beta_voltage(probe, inverter)
@@ -185,7 +195,8 @@ def choose_sequence(
         if cfg.reuse_opposite_probe_score and pair in information_cache:
             info = information_cache[pair]
         else:
-            info = information_score(observer, voltage, cfg.probe_dwell_s, cfg.information_method)
+            info = (_fisher_from_quadratic(fisher_quadratic, voltage) if fisher_quadratic is not None
+                    else information_score(observer, voltage, cfg.probe_dwell_s, cfg.information_method))
             if cfg.reuse_opposite_probe_score:
                 information_cache[pair] = info
         previous = gateway.current_vector_id

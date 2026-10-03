@@ -41,6 +41,33 @@ def test_slot_channel_is_switchable_and_only_periodic() -> None:
     assert on.current_increment(0.2, 80, 20, 5e-6) != pytest.approx(on.current_increment(0.3, 80, 20, 5e-6))
 
 
+@pytest.mark.parametrize("noise_ratio", [1.0, 4.0])
+def test_fisher_quadratic_matches_direct_state_sum(noise_ratio: float) -> None:
+    saliency = SlotSaliency(strength=0.15)
+    observer = ActiveBeliefRotorObserver(
+        saliency, noise_std_a=0.002, noise_std_axes_a=(0.002, 0.002 * noise_ratio),
+        speed_hypotheses=(-1.0, 0.0, 1.0),
+    )
+    rng = np.random.default_rng(41)
+    posterior = rng.random(observer.weights.shape)
+    observer.weights = posterior / posterior.sum()
+    dwell = 5e-6
+    for voltage in ((0.0, 0.0), (80.0, 0.0), (0.0, 80.0), (47.0, -21.0), (-47.0, 21.0)):
+        va, vb = voltage
+        phase = saliency.harmonic * observer.angles
+        factor = dwell * saliency.strength * saliency.harmonic / saliency.differential_inductance_h
+        deriv_a = factor * (-np.sin(phase) * va + np.cos(phase) * vb)
+        deriv_b = factor * (np.cos(phase) * va + np.sin(phase) * vb)
+        direct = np.sum(observer.weights * observer.gains[None, None, :] ** 2 *
+                        ((deriv_a / 0.002)[:, None, None] ** 2 +
+                         (deriv_b / (0.002 * noise_ratio))[:, None, None] ** 2))
+        direct *= observer.period_rad**2 / 12.0
+        actual = information_score(observer, voltage, dwell, "fisher")
+        assert actual == pytest.approx(float(direct), rel=1e-12, abs=1e-12)
+        opposite = information_score(observer, (-va, -vb), dwell, "fisher")
+        assert opposite == pytest.approx(actual, rel=1e-12, abs=1e-12)
+
+
 def test_observer_api_cannot_receive_truth_and_identical_measurements_give_identical_posteriors() -> None:
     signature = inspect.signature(ActiveBeliefRotorObserver.update_observations)
     assert not ({"theta_m", "omega_m", "true_angle", "true_speed", "measured_state"} & set(signature.parameters))

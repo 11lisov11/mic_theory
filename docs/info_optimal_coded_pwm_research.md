@@ -120,6 +120,31 @@ python tools/benchmark_observer_transport.py --out experiments/info_optimal_code
 
 The directional-noise results strengthen the negative conclusion for the current information-optimal probe policy. Before another hardware-oriented PWM hypothesis, measure the actual rotor-angle-dependent HF response and current-channel noise covariance. A synthetic advantage created by an assumed sensor asymmetry would not establish a real induction-motor effect.
 
+### Fisher-score computation follow-up
+
+The six candidate directions share one posterior-weighted, symmetric `2 x 2` Fisher
+quadratic form. Computing its three coefficients once per PWM interval and then
+scoring each voltage vector by `v^T F v` removes six repeated grid reductions.
+This is an algebraic refactor of the **local Fisher score**, not a different
+information criterion or a new rotor-angle measurement. Two independent direct
+sum tests cover isotropic and four-to-one alpha/beta noise and nonuniform
+posterior weights, including opposite-vector symmetry. With a uniform
+posterior, scores can be equal to floating-point precision and the selected
+vector can differ solely by numerical tie-breaking; such a tie is not evidence
+of a distinct optimum.
+
+The existing `anisotropic_holdout/trials.csv` contains 40 Fisher-adaptive
+AIR56/AL31 cases (20 common seeds, 50 ms each, beta noise four times alpha).
+Re-running every case with the optimized scorer and the same robust observer
+produced **zero differences** in angle P95, torque-ripple RMS, switching rate,
+probe fraction and gateway rejections. Mean recorded Python selection time
+fell from `1904.8` to `898.2 us` per 100-us interval (`2.12x`); an isolated
+warm microbenchmark fell from about `816` to `452 us` (`1.81x`). These times
+are host- and workload-dependent. The optimized controller still misses the
+100-us budget by nearly an order of magnitude, so this is not firmware
+readiness. The 40 cases were previously inspected and serve only as a
+regression set, **not** as a new blind accuracy experiment.
+
 ![Paired-seed ablation, monochrome](../experiments/info_optimal_coded_pwm/blind_smoke/angle_p95_ablation_ci.png)
 
 ![Accuracy-switching tradeoff, monochrome](../experiments/info_optimal_coded_pwm/blind_smoke/pareto_switching.png)
