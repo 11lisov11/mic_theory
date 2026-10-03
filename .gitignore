@@ -16,6 +16,12 @@ reports/
 results_run/
 archive/
 
+# Coded-PWM experiment exports can be regenerated from committed CSV/JSON.
+experiments/info_optimal_coded_pwm/*/*.png
+experiments/info_optimal_coded_pwm/*/*.svg
+experiments/info_optimal_coded_pwm/*/representative_trace.json
+experiments/info_optimal_coded_pwm/development_smoke_robust/summary.json
+
 # Generated artifacts. Note: `outputs/` is also a small python package (plots/styles).
 outputs/**
 !outputs/__init__.py
