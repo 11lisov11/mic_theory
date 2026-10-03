@@ -457,6 +457,64 @@ python tools/study_coded_pwm_student_noise.py --seed-offset 27000 --seeds 20 --s
 python -m pytest tests/test_student_t_noise_rotor_observer.py tests/test_coded_pwm_student_noise.py -q -p no:cacheprovider
 ```
 
+### Trial-group calibration of modulo-angle sets
+
+The previous noise likelihoods still undercovered in some cells. A separate
+uncertainty-only experiment therefore froze the strong fixed-vector-6,
+per-block `(1,4)` observer at `T=2` and calibrated a *single* ranked-set
+threshold across AIR56/AL31 and physical noise ratios `1,2,3,8`. For each
+posterior, the score of an angle bin is the cumulative probability of bins
+ranked ahead of it. At runtime a bin is included when its score is below
+the frozen threshold; this operation uses posterior probabilities only.
+The true modulo angle was used **offline** to score calibration and held-out
+trials, not in the working observer or runtime set constructor.
+
+The calibration used 20 seed groups (`28000-28019`), each containing all
+eight scenarios. Within each trial it took the 95th percentile of the
+500 step scores; the group's score was the worst of its eight trials. The
+global threshold was the `ceil((n+1)*0.95)`-th ordered calibration-group
+score (`n=20`, therefore the maximum). This is the ordinary split-conformal
+order-statistic construction applied at the *trial-group* level; its
+finite-sample reliability argument needs exchangeable calibration and new
+groups [Angelopoulos and Bates](https://arxiv.org/abs/2107.07511). The
+order statistic would then give at least `20/21 = 95.24%` *marginal*
+probability that a new eight-scenario group meets the trial-level target,
+averaged over calibration and new draws, not conditional on a particular
+calibration sample. The deterministic contiguous simulation seed ranges,
+changed hardware,
+temperature drift or a different scenario mix do **not** establish that
+assumption. No conditional, per-motor or hardware guarantee is claimed.
+
+The resulting threshold `0.99671486` was frozen before testing seeds
+`29000-29019`. On these 20 held-out groups, all eight trials in a group
+had at least 95% of their time steps covered in `19/20` groups; the raw
+HPD-95 sets achieved `6/20`. This is an empirical count, not proof that
+the unknown reliability is exactly 95%; the exact binomial 95% interval
+for `19/20` is approximately `[75%, 99.9%]`.
+
+| Motor | Physical noise ratio | Mean step coverage raw -> calibrated | Mean set width raw -> calibrated (deg) |
+|---|---:|---:|---:|
+| AIR56 | 1 | 98% -> 100% | 4.28 -> 6.64 |
+| AIR56 | 2 | 96% -> 100% | 5.14 -> 8.03 |
+| AIR56 | 3 | 94% -> 100% | 5.74 -> 8.82 |
+| AIR56 | 8 | 92% -> 99% | 6.04 -> 9.25 |
+| AL31 | 1 | 99% -> 100% | 4.19 -> 6.54 |
+| AL31 | 2 | 96% -> 100% | 5.11 -> 7.97 |
+| AL31 | 3 | 94% -> 100% | 5.61 -> 8.67 |
+| AL31 | 8 | 92% -> 100% | 5.83 -> 8.95 |
+
+The sets grew by `53-56%` and occupied on average `51-72%` of one
+`360/28 = 12.86` degree observable period. Thus the reliability gain is
+real in this synthetic held-out comparison but expensive in precision;
+it does not resolve the 28-fold ambiguity in absolute mechanical angle.
+Even offline calibration would require a measured independent encoder and
+fresh validation on the actual motor/inverter/current-sensing chain.
+
+```powershell
+python tools/study_coded_pwm_conformal_sets.py --calibration-offset 28000 --holdout-offset 29000 --calibration-seeds 20 --holdout-seeds 20 --steps 500 --out experiments/info_optimal_coded_pwm/conformal_set_holdout
+python -m pytest tests/test_conformal_rotor_set.py tests/test_coded_pwm_conformal_sets.py -q -p no:cacheprovider
+```
+
 ![Paired-seed ablation, monochrome](../experiments/info_optimal_coded_pwm/blind_smoke/angle_p95_ablation_ci.png)
 
 ![Accuracy-switching tradeoff, monochrome](../experiments/info_optimal_coded_pwm/blind_smoke/pareto_switching.png)

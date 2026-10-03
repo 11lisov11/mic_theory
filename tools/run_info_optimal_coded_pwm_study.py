@@ -173,7 +173,8 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
               likelihood_temperature: float = 1.0,
               persistent_noise_ratios: tuple[float, ...] | None = None,
               student_t_beta_df: float | None = None,
-              student_t_beta_scale_ratio: float = 2.0) -> dict:
+              student_t_beta_scale_ratio: float = 2.0,
+              capture_posterior_trace: bool = False) -> dict:
     if method not in METHODS:
         raise ValueError(method)
     if observer_profile not in ("legacy", "dense", "robust"):
@@ -258,6 +259,7 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
     widths = {mass: [] for mass in MASSES}
     true_theta_trace: list[float] = []
     estimate_trace: list[float] = []
+    posterior_trace: list[list[float]] = []
     acquisition_step: int | None = None
     good_run = 0
     for k in range(case.steps):
@@ -367,6 +369,8 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
             if probe is not None:
                 observations.append((tuple(probe_obs), probe_voltage, cfg.probe_dwell_s))
             observer.update_observations(observations, inverter.t_pwm_s)
+            if capture_posterior_trace:
+                posterior_trace.append(observer.angle_marginal().tolist())
             lag = min(int(method.split("lag")[-1]), len(observer.history) - 1) if method.startswith("B3_lag") else 0
             estimate = observer.map_angle(lag)
             speed_hat = float(np.sum(observer.weights * observer.speeds[None, :, None]))
@@ -429,6 +433,8 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
     if isinstance(observer, PersistentNoiseRotorObserver):
         result["noise_mode_probabilities"] = dict(zip(observer.noise_ratios,
                                                        map(float, observer.noise_mode_probabilities())))
+    if capture_posterior_trace:
+        result["trace_angle_marginal"] = posterior_trace
     return result
 
 
