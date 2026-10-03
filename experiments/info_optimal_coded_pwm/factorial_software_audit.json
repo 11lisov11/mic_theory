@@ -1,0 +1,116 @@
+{
+  "status": "host_software_audit_only",
+  "seed": 15000,
+  "steps_per_trial": 6,
+  "quick": false,
+  "factor_levels": {
+    "motor": [
+      "AIR56",
+      "AL31",
+      "AO2"
+    ],
+    "operating_point": [
+      [
+        "standstill",
+        0.0
+      ],
+      [
+        "constant",
+        -0.5
+      ],
+      [
+        "constant",
+        -0.01
+      ],
+      [
+        "constant",
+        0.001
+      ],
+      [
+        "constant",
+        0.005
+      ],
+      [
+        "constant",
+        0.01
+      ],
+      [
+        "constant",
+        0.02
+      ],
+      [
+        "constant",
+        0.05
+      ],
+      [
+        "constant",
+        0.1
+      ],
+      [
+        "constant",
+        0.5
+      ],
+      [
+        "reversal",
+        0.02
+      ],
+      [
+        "ramp",
+        0.02
+      ],
+      [
+        "startup",
+        0.01
+      ],
+      [
+        "locked",
+        0.0
+      ],
+      [
+        "torque_step",
+        0.01
+      ]
+    ],
+    "strength": [
+      0.0,
+      0.05,
+      0.15
+    ],
+    "nonideal": [
+      false,
+      true
+    ],
+    "mismatch": [
+      "nominal",
+      "rs_minus30",
+      "rs_plus30",
+      "rs_plus60",
+      "rr_minus30",
+      "rr_plus30",
+      "rr_plus60",
+      "lm_minus20",
+      "lm_plus20",
+      "combined",
+      "drift"
+    ],
+    "noise_ratio": [
+      1.0,
+      4.0
+    ],
+    "method": [
+      "B2_fixed_probe",
+      "B3_info_separation",
+      "B3_info_fisher"
+    ]
+  },
+  "unique_cases": 5940,
+  "expected_trials": 17820,
+  "processed_trials": 17820,
+  "failure_count": 0,
+  "gate_rejections": 0,
+  "no_probe_trials": 0,
+  "failures_first_100": [],
+  "elapsed_wall_s": 135.10206710000057,
+  "accuracy_claim": false,
+  "hardware_claim": false
+}

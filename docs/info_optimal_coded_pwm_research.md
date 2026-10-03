@@ -145,6 +145,48 @@ are host- and workload-dependent. The optimized controller still misses the
 readiness. The 40 cases were previously inspected and serve only as a
 regression set, **not** as a new blind accuracy experiment.
 
+### Finite-grid combination audit
+
+The earlier `stress` suite deliberately used only six linked combinations of
+saliency, inverter nonideality and parameter mismatch. A separate software
+audit now enumerates the **full Cartesian product** of the declared finite
+levels: three motors, 15 operating-point labels (including negative-speed
+cases), three assumed saliency strengths, two inverter modes, all 11 existing
+mismatch modes and two current-channel noise ratios. This gives `5,940` case
+keys and `17,820` six-PWM-period trials across the fixed, separation-adaptive
+and Fisher-adaptive policies, all on one common seed `15000`. All completed
+without exceptions, nonfinite/out-of-range modulo P95, gateway rejections or
+complete probe suppression. This is a short **software-invariant audit**:
+`0.6 ms` of simulated time cannot establish speed tracking, steady-state
+losses, 95% coverage, superiority or safe hardware operation.
+
+A second, deterministic enumeration checked `672` combinations of eight base
+vectors, six probe vectors, bus values just inside/at/outside the declared
+limits and two predicted-current levels. Equal ideal mean voltage and the
+gateway's *strictly interior* bus/current acceptance matched expectation in
+all cells. The assumed `N=28` slot channel was tested at all 48 observer phase
+bins across all 28 periods of a mechanical revolution, six probe directions,
+three saliency strengths and three nuisance gains: `72,576` response
+comparisons showed the expected periodicity and opposite-voltage symmetry.
+An independent direct-derivative calculation matched the optimized Fisher
+score in `1,728` phase/probe/noise/strength combinations. These outcomes
+verify the stated **synthetic** equations; they do not demonstrate that an
+actual AIR56 rotor has 28 measurable periods.
+
+Reproduce without touching equipment:
+
+```powershell
+python tools/audit_info_pwm_factorial.py --seed 15000 --steps 6 --out experiments/info_optimal_coded_pwm/factorial_software_audit.json
+python tools/audit_info_pwm_factorial.py --static-only --out experiments/info_optimal_coded_pwm/factorial_static_audit.json
+python -m pytest tests/test_info_pwm_factorial.py -q -p no:cacheprovider
+```
+
+These finite levels are not “all possible” continuous temperatures, loads,
+angles, voltages or motor designs. A single seed cannot quantify failure
+probability. The original long, multi-seed fixed-versus-adaptive comparisons
+remain the relevant accuracy evidence; they still do not show a robust
+adaptive advantage.
+
 ![Paired-seed ablation, monochrome](../experiments/info_optimal_coded_pwm/blind_smoke/angle_p95_ablation_ci.png)
 
 ![Accuracy-switching tradeoff, monochrome](../experiments/info_optimal_coded_pwm/blind_smoke/pareto_switching.png)
