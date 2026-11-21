@@ -1,0 +1,14 @@
+# Local exploratory runs; committed blind and final JSON/CSV remain tracked.
+/quick*/
+/smoke*/
+/holdout_*/
+/focused_*/
+/*_100/
+/*_20/
+/stress_sweep/
+
+# Long/stress suites commit their numerical evidence, not redundant plots.
+/long_final/*.png
+/long_final/*.svg
+/stress_final/*.png
+/stress_final/*.svg

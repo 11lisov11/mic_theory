@@ -11,8 +11,7 @@ authors:
     given-names: "Andrey D."
 license: "MIT"
 date-released: "2026-02-14"
-# TODO: Replace with the actual GitHub URL after publication.
-repository-code: "https://github.com/USER/REPO"
+repository-code: "https://github.com/11lisov11/mic_theory"
 keywords:
   - induction motor
   - field-oriented control

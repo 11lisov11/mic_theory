@@ -1,0 +1,200 @@
+{
+  "status": "synthetic_host_only",
+  "seed_range": [
+    21500,
+    21502
+  ],
+  "steps_per_trial": 500,
+  "trial_count": 48,
+  "motors": [
+    "AIR56",
+    "AL31"
+  ],
+  "actual_noise_ratios": [
+    1.0,
+    4.0
+  ],
+  "noise_mode_scope": "persistent across trial",
+  "probe_vector": 6,
+  "arms": [
+    "oracle_matched",
+    "block_mixture_t1",
+    "block_mixture_t2",
+    "persistent_t2"
+  ],
+  "primary_comparison": "persistent_t2 versus block_mixture_t2 on paired modulo-angle P95",
+  "gateway_rejections": 0,
+  "cells": [
+    {
+      "motor": "AIR56",
+      "actual_ratio": 1.0,
+      "n_seeds": 3,
+      "arms": {
+        "oracle_matched": {
+          "mean_p95_deg": 1.4133227428514124,
+          "mean_hpd95_coverage": 0.9346666666666668,
+          "mean_hpd95_width_deg": 2.7728571428571427,
+          "mean_compute_us": 515.3341999781939
+        },
+        "block_mixture_t1": {
+          "mean_p95_deg": 1.830078622814767,
+          "mean_hpd95_coverage": 0.9780000000000001,
+          "mean_hpd95_width_deg": 3.1871428571428573,
+          "mean_compute_us": 742.2423999911795
+        },
+        "block_mixture_t2": {
+          "mean_p95_deg": 1.8345429085290565,
+          "mean_hpd95_coverage": 1.0,
+          "mean_hpd95_width_deg": 4.090892857142856,
+          "mean_compute_us": 716.1106000482201
+        },
+        "persistent_t2": {
+          "mean_p95_deg": 1.3030869784201282,
+          "mean_hpd95_coverage": 0.9993333333333334,
+          "mean_hpd95_width_deg": 3.572321428571429,
+          "mean_compute_us": 776.6284000414695
+        }
+      },
+      "persistent_mean_true_mode_probability": 1.0,
+      "persistent_vs_block_t2": {
+        "mean_relative_reduction": 0.27568537252345765,
+        "bootstrap95_low": 0.0,
+        "bootstrap95_high": 0.5268931732634752
+      },
+      "persistent_vs_oracle": {
+        "mean_relative_reduction": 0.040965692844630884,
+        "bootstrap95_low": -0.27299672190164886,
+        "bootstrap95_high": 0.36043525352030753
+      }
+    },
+    {
+      "motor": "AIR56",
+      "actual_ratio": 4.0,
+      "n_seeds": 3,
+      "arms": {
+        "oracle_matched": {
+          "mean_p95_deg": 2.476028672960348,
+          "mean_hpd95_coverage": 0.892,
+          "mean_hpd95_width_deg": 4.430178571428571,
+          "mean_compute_us": 498.62566666585434
+        },
+        "block_mixture_t1": {
+          "mean_p95_deg": 2.446913021579872,
+          "mean_hpd95_coverage": 0.8719999999999999,
+          "mean_hpd95_width_deg": 4.700178571428572,
+          "mean_compute_us": 689.325799937554
+        },
+        "block_mixture_t2": {
+          "mean_p95_deg": 2.268777725074426,
+          "mean_hpd95_coverage": 0.9953333333333333,
+          "mean_hpd95_width_deg": 5.8776785714285715,
+          "mean_compute_us": 686.9513333561675
+        },
+        "persistent_t2": {
+          "mean_p95_deg": 2.476028672960348,
+          "mean_hpd95_coverage": 0.996,
+          "mean_hpd95_width_deg": 5.781785714285714,
+          "mean_compute_us": 748.2469333420644
+        }
+      },
+      "persistent_mean_true_mode_probability": 1.0,
+      "persistent_vs_block_t2": {
+        "mean_relative_reduction": -0.10634772512630697,
+        "bootstrap95_low": -0.2675838496125612,
+        "bootstrap95_high": 0.0
+      },
+      "persistent_vs_oracle": {
+        "mean_relative_reduction": 0.0,
+        "bootstrap95_low": 0.0,
+        "bootstrap95_high": 0.0
+      }
+    },
+    {
+      "motor": "AL31",
+      "actual_ratio": 1.0,
+      "n_seeds": 3,
+      "arms": {
+        "oracle_matched": {
+          "mean_p95_deg": 1.6279033310844293,
+          "mean_hpd95_coverage": 0.9173333333333332,
+          "mean_hpd95_width_deg": 2.751607142857143,
+          "mean_compute_us": 479.1540667162432
+        },
+        "block_mixture_t1": {
+          "mean_p95_deg": 1.890248685720005,
+          "mean_hpd95_coverage": 0.8486666666666666,
+          "mean_hpd95_width_deg": 3.1275,
+          "mean_compute_us": 718.3043333655709
+        },
+        "block_mixture_t2": {
+          "mean_p95_deg": 1.8009629714342914,
+          "mean_hpd95_coverage": 1.0,
+          "mean_hpd95_width_deg": 4.083392857142857,
+          "mean_compute_us": 725.5029333464336
+        },
+        "persistent_t2": {
+          "mean_p95_deg": 1.5831715301032077,
+          "mean_hpd95_coverage": 1.0,
+          "mean_hpd95_width_deg": 3.6210714285714283,
+          "mean_compute_us": 748.173599991181
+        }
+      },
+      "persistent_mean_true_mode_probability": 1.0,
+      "persistent_vs_block_t2": {
+        "mean_relative_reduction": 0.11296169107456326,
+        "bootstrap95_low": -0.04359177470547177,
+        "bootstrap95_high": 0.26414980127461635
+      },
+      "persistent_vs_oracle": {
+        "mean_relative_reduction": 0.017667443722667407,
+        "bootstrap95_low": -0.07518996497407233,
+        "bootstrap95_high": 0.12152665439214233
+      }
+    },
+    {
+      "motor": "AL31",
+      "actual_ratio": 4.0,
+      "n_seeds": 3,
+      "arms": {
+        "oracle_matched": {
+          "mean_p95_deg": 2.654600101531775,
+          "mean_hpd95_coverage": 0.824,
+          "mean_hpd95_width_deg": 4.404821428571428,
+          "mean_compute_us": 499.56419997882523
+        },
+        "block_mixture_t1": {
+          "mean_p95_deg": 2.54938566289951,
+          "mean_hpd95_coverage": 0.84,
+          "mean_hpd95_width_deg": 4.39,
+          "mean_compute_us": 697.2226667045712
+        },
+        "block_mixture_t2": {
+          "mean_p95_deg": 2.48475131427999,
+          "mean_hpd95_coverage": 0.9979999999999999,
+          "mean_hpd95_width_deg": 5.566071428571427,
+          "mean_compute_us": 706.508600017211
+        },
+        "persistent_t2": {
+          "mean_p95_deg": 2.654600101531775,
+          "mean_hpd95_coverage": 1.0,
+          "mean_hpd95_width_deg": 5.7526785714285715,
+          "mean_compute_us": 765.0404000087292
+        }
+      },
+      "persistent_mean_true_mode_probability": 1.0,
+      "persistent_vs_block_t2": {
+        "mean_relative_reduction": -0.0616010940575382,
+        "bootstrap95_low": -0.1055471503043839,
+        "bootstrap95_high": 0.0
+      },
+      "persistent_vs_oracle": {
+        "mean_relative_reduction": 0.0,
+        "bootstrap95_low": 0.0,
+        "bootstrap95_high": 0.0
+      }
+    }
+  ],
+  "elapsed_wall_s": 21.44775649999974,
+  "absolute_angle_claim": false,
+  "hardware_claim": false
+}

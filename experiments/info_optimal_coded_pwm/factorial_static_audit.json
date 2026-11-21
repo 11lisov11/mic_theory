@@ -1,0 +1,9 @@
+{
+  "status": "finite_grid_static_audit",
+  "checked_sequences": 672,
+  "checked_phase_responses": 72576,
+  "checked_fisher_scores": 1728,
+  "failure_count": 0,
+  "failures_first_100": [],
+  "hardware_claim": false
+}

@@ -1,0 +1,9 @@
+{
+  "hypotheses": 4176,
+  "repeats": 5,
+  "number": 500,
+  "reference_us_median": 295.648400000573,
+  "vectorized_us_median": 115.00660000001517,
+  "speedup_ratio": 2.5707081158866885,
+  "numerically_equivalent_atol": 1e-15
+}

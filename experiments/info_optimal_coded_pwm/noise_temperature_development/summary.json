@@ -1,0 +1,223 @@
+{
+  "status": "synthetic_host_only",
+  "seed_range": [
+    19000,
+    19019
+  ],
+  "steps_per_trial": 500,
+  "trial_count": 320,
+  "motors": [
+    "AIR56",
+    "AL31"
+  ],
+  "actual_noise_ratios": [
+    1.0,
+    4.0
+  ],
+  "temperature_grid": [
+    1.0,
+    2.0,
+    4.0,
+    8.0
+  ],
+  "noise_mixture_ratios": [
+    1.0,
+    4.0
+  ],
+  "probe_vector": 6,
+  "selection_rule": "smallest T with mean coverage >=0.90 in all four cells and mean P95 <=1.20*T1 in all four cells; otherwise reject",
+  "gateway_rejections": 0,
+  "cells": [
+    {
+      "motor": "AIR56",
+      "actual_ratio": 1.0,
+      "n_seeds": 20,
+      "temperatures": {
+        "1.0": {
+          "mean_p95_deg": 1.5432968501461286,
+          "mean_hpd95_coverage": 0.8996000000000001,
+          "mean_hpd95_width_deg": 3.2342410714285714,
+          "p95_vs_untempered": {
+            "mean_relative_reduction": 0.0,
+            "bootstrap95_low": 0.0,
+            "bootstrap95_high": 0.0
+          }
+        },
+        "2.0": {
+          "mean_p95_deg": 1.4659219755053978,
+          "mean_hpd95_coverage": 0.9816,
+          "mean_hpd95_width_deg": 4.338,
+          "p95_vs_untempered": {
+            "mean_relative_reduction": 0.05735373230866596,
+            "bootstrap95_low": 0.009392354550358015,
+            "bootstrap95_high": 0.10760135877895918
+          }
+        },
+        "4.0": {
+          "mean_p95_deg": 1.3801103026249524,
+          "mean_hpd95_coverage": 0.9999,
+          "mean_hpd95_width_deg": 5.7182410714285705,
+          "p95_vs_untempered": {
+            "mean_relative_reduction": 0.11283998477884691,
+            "bootstrap95_low": 0.04448218741732907,
+            "bootstrap95_high": 0.1914913430463912
+          }
+        },
+        "8.0": {
+          "mean_p95_deg": 1.1194086498657057,
+          "mean_hpd95_coverage": 0.9999,
+          "mean_hpd95_width_deg": 7.518214285714285,
+          "p95_vs_untempered": {
+            "mean_relative_reduction": 0.27839854529695884,
+            "bootstrap95_low": 0.2135653894788334,
+            "bootstrap95_high": 0.3488010839909049
+          }
+        }
+      }
+    },
+    {
+      "motor": "AIR56",
+      "actual_ratio": 4.0,
+      "n_seeds": 20,
+      "temperatures": {
+        "1.0": {
+          "mean_p95_deg": 3.127447022875092,
+          "mean_hpd95_coverage": 0.7059000000000001,
+          "mean_hpd95_width_deg": 4.497026785714286,
+          "p95_vs_untempered": {
+            "mean_relative_reduction": 0.0,
+            "bootstrap95_low": 0.0,
+            "bootstrap95_high": 0.0
+          }
+        },
+        "2.0": {
+          "mean_p95_deg": 3.0877610063154006,
+          "mean_hpd95_coverage": 0.9100999999999999,
+          "mean_hpd95_width_deg": 6.027214285714286,
+          "p95_vs_untempered": {
+            "mean_relative_reduction": 0.022362688004113083,
+            "bootstrap95_low": -0.003935482916437733,
+            "bootstrap95_high": 0.050023591683497515
+          }
+        },
+        "4.0": {
+          "mean_p95_deg": 3.06555858469489,
+          "mean_hpd95_coverage": 0.9897,
+          "mean_hpd95_width_deg": 7.9363125,
+          "p95_vs_untempered": {
+            "mean_relative_reduction": 0.029879750584933605,
+            "bootstrap95_low": -0.03127661426164798,
+            "bootstrap95_high": 0.08320797248816622
+          }
+        },
+        "8.0": {
+          "mean_p95_deg": 3.1092093514806516,
+          "mean_hpd95_coverage": 0.9985000000000002,
+          "mean_hpd95_width_deg": 9.962437500000002,
+          "p95_vs_untempered": {
+            "mean_relative_reduction": 0.00917350636033042,
+            "bootstrap95_low": -0.12141214754499653,
+            "bootstrap95_high": 0.11555233936000271
+          }
+        }
+      }
+    },
+    {
+      "motor": "AL31",
+      "actual_ratio": 1.0,
+      "n_seeds": 20,
+      "temperatures": {
+        "1.0": {
+          "mean_p95_deg": 1.497950126857999,
+          "mean_hpd95_coverage": 0.921,
+          "mean_hpd95_width_deg": 3.216589285714286,
+          "p95_vs_untempered": {
+            "mean_relative_reduction": 0.0,
+            "bootstrap95_low": 0.0,
+            "bootstrap95_high": 0.0
+          }
+        },
+        "2.0": {
+          "mean_p95_deg": 1.4273628870251964,
+          "mean_hpd95_coverage": 0.9934000000000001,
+          "mean_hpd95_width_deg": 4.206375,
+          "p95_vs_untempered": {
+            "mean_relative_reduction": 0.049232152354739135,
+            "bootstrap95_low": 0.005125983336256179,
+            "bootstrap95_high": 0.0987669758307023
+          }
+        },
+        "4.0": {
+          "mean_p95_deg": 1.2681317233117497,
+          "mean_hpd95_coverage": 0.9999,
+          "mean_hpd95_width_deg": 5.519303571428571,
+          "p95_vs_untempered": {
+            "mean_relative_reduction": 0.15819643678391201,
+            "bootstrap95_low": 0.1142196844422537,
+            "bootstrap95_high": 0.20116817530557624
+          }
+        },
+        "8.0": {
+          "mean_p95_deg": 1.0255190662150713,
+          "mean_hpd95_coverage": 0.9999,
+          "mean_hpd95_width_deg": 7.331785714285713,
+          "p95_vs_untempered": {
+            "mean_relative_reduction": 0.3119821428809718,
+            "bootstrap95_low": 0.2351919474553522,
+            "bootstrap95_high": 0.38927035731025933
+          }
+        }
+      }
+    },
+    {
+      "motor": "AL31",
+      "actual_ratio": 4.0,
+      "n_seeds": 20,
+      "temperatures": {
+        "1.0": {
+          "mean_p95_deg": 3.030596177369831,
+          "mean_hpd95_coverage": 0.7839999999999999,
+          "mean_hpd95_width_deg": 4.502517857142857,
+          "p95_vs_untempered": {
+            "mean_relative_reduction": 0.0,
+            "bootstrap95_low": 0.0,
+            "bootstrap95_high": 0.0
+          }
+        },
+        "2.0": {
+          "mean_p95_deg": 2.9927044548597483,
+          "mean_hpd95_coverage": 0.9235,
+          "mean_hpd95_width_deg": 5.927303571428571,
+          "p95_vs_untempered": {
+            "mean_relative_reduction": 0.022864206936564345,
+            "bootstrap95_low": -0.016318198010977617,
+            "bootstrap95_high": 0.06533183597710529
+          }
+        },
+        "4.0": {
+          "mean_p95_deg": 3.0130934669265237,
+          "mean_hpd95_coverage": 0.9929,
+          "mean_hpd95_width_deg": 7.8483214285714284,
+          "p95_vs_untempered": {
+            "mean_relative_reduction": 0.015867015108586947,
+            "bootstrap95_low": -0.0608402896579844,
+            "bootstrap95_high": 0.08678322208414245
+          }
+        },
+        "8.0": {
+          "mean_p95_deg": 2.9646982155608343,
+          "mean_hpd95_coverage": 0.9985000000000002,
+          "mean_hpd95_width_deg": 9.871044642857143,
+          "p95_vs_untempered": {
+            "mean_relative_reduction": -0.001786215037756922,
+            "bootstrap95_low": -0.13000044869291127,
+            "bootstrap95_high": 0.11815507981792907
+          }
+        }
+      }
+    }
+  ],
+  "elapsed_wall_s": 171.48671210000066,
+  "absolute_angle_claim": false,
+  "hardware_claim": false
+}

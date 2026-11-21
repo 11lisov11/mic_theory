@@ -1,0 +1,141 @@
+{
+  "status": "synthetic_host_only",
+  "seed_range": [
+    21000,
+    21019
+  ],
+  "steps_per_trial": 500,
+  "trial_count": 160,
+  "motors": [
+    "AIR56",
+    "AL31"
+  ],
+  "actual_noise_ratios": [
+    1.0,
+    4.0
+  ],
+  "temperature_grid": [
+    1.0,
+    2.0
+  ],
+  "noise_mixture_ratios": [
+    1.0,
+    4.0
+  ],
+  "probe_vector": 6,
+  "selection_rule": "smallest T with mean coverage >=0.90 in all four cells and mean P95 <=1.20*T1 in all four cells; otherwise reject",
+  "gateway_rejections": 0,
+  "cells": [
+    {
+      "motor": "AIR56",
+      "actual_ratio": 1.0,
+      "n_seeds": 20,
+      "temperatures": {
+        "1.0": {
+          "mean_p95_deg": 1.6015905659934915,
+          "mean_hpd95_coverage": 0.8915000000000001,
+          "mean_hpd95_width_deg": 3.1836964285714284,
+          "p95_vs_untempered": {
+            "mean_relative_reduction": 0.0,
+            "bootstrap95_low": 0.0,
+            "bootstrap95_high": 0.0
+          }
+        },
+        "2.0": {
+          "mean_p95_deg": 1.5592150677554613,
+          "mean_hpd95_coverage": 0.9748000000000001,
+          "mean_hpd95_width_deg": 4.229571428571428,
+          "p95_vs_untempered": {
+            "mean_relative_reduction": 0.022461267102231928,
+            "bootstrap95_low": -0.000303096535599965,
+            "bootstrap95_high": 0.06116768364773957
+          }
+        }
+      }
+    },
+    {
+      "motor": "AIR56",
+      "actual_ratio": 4.0,
+      "n_seeds": 20,
+      "temperatures": {
+        "1.0": {
+          "mean_p95_deg": 2.392513335011805,
+          "mean_hpd95_coverage": 0.8609,
+          "mean_hpd95_width_deg": 4.330017857142857,
+          "p95_vs_untempered": {
+            "mean_relative_reduction": 0.0,
+            "bootstrap95_low": 0.0,
+            "bootstrap95_high": 0.0
+          }
+        },
+        "2.0": {
+          "mean_p95_deg": 2.295032321681924,
+          "mean_hpd95_coverage": 0.9682999999999999,
+          "mean_hpd95_width_deg": 5.784776785714285,
+          "p95_vs_untempered": {
+            "mean_relative_reduction": 0.037038235598074315,
+            "bootstrap95_low": -0.034345372179675246,
+            "bootstrap95_high": 0.09567422875186028
+          }
+        }
+      }
+    },
+    {
+      "motor": "AL31",
+      "actual_ratio": 1.0,
+      "n_seeds": 20,
+      "temperatures": {
+        "1.0": {
+          "mean_p95_deg": 1.5250143104527318,
+          "mean_hpd95_coverage": 0.9397000000000002,
+          "mean_hpd95_width_deg": 3.1745357142857147,
+          "p95_vs_untempered": {
+            "mean_relative_reduction": 0.0,
+            "bootstrap95_low": 0.0,
+            "bootstrap95_high": 0.0
+          }
+        },
+        "2.0": {
+          "mean_p95_deg": 1.3800543005773336,
+          "mean_hpd95_coverage": 0.9802,
+          "mean_hpd95_width_deg": 4.1425446428571435,
+          "p95_vs_untempered": {
+            "mean_relative_reduction": 0.10074690493705363,
+            "bootstrap95_low": 0.0385104201016111,
+            "bootstrap95_high": 0.17248675433227814
+          }
+        }
+      }
+    },
+    {
+      "motor": "AL31",
+      "actual_ratio": 4.0,
+      "n_seeds": 20,
+      "temperatures": {
+        "1.0": {
+          "mean_p95_deg": 2.4036268714532847,
+          "mean_hpd95_coverage": 0.7977,
+          "mean_hpd95_width_deg": 4.464803571428571,
+          "p95_vs_untempered": {
+            "mean_relative_reduction": 0.0,
+            "bootstrap95_low": 0.0,
+            "bootstrap95_high": 0.0
+          }
+        },
+        "2.0": {
+          "mean_p95_deg": 2.260312992431532,
+          "mean_hpd95_coverage": 0.9390000000000001,
+          "mean_hpd95_width_deg": 5.762437500000001,
+          "p95_vs_untempered": {
+            "mean_relative_reduction": 0.06545540074986504,
+            "bootstrap95_low": 0.03413901272953068,
+            "bootstrap95_high": 0.09444116132877561
+          }
+        }
+      }
+    }
+  ],
+  "elapsed_wall_s": 104.64052720000109,
+  "absolute_angle_claim": false,
+  "hardware_claim": false
+}

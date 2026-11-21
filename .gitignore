@@ -27,3 +27,7 @@ docs/legacy_examples/
 
 # Local intermediate DOCX builds (keep the official PGUPS file name in git).
 paper/pgups_2026/article_mic_ieee_vak_pgups.docx
+
+# Generated local test and reproduction files
+/.tmp_pytest/
+/outputs/coded-pwm-demo/
