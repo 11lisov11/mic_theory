@@ -17,13 +17,11 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          python -m pip install -r requirements.txt -r requirements-paper.txt
       - name: Run tests
         run: pytest -q
       - name: Validate PGUPS Paper Tables
-        run: |
-          pip install -r requirements-paper.txt
-          python tools/validate_pgups_study.py
+        run: python tools/validate_pgups_study.py
       - name: Benchmark smoke (rule-based MIC)
         run: |
           python -m mic_ai.tools.run_benchmark \
@@ -116,7 +114,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          python -m pip install -r requirements.txt -r requirements-paper.txt
       - name: Theory validation smoke
         run: |
           python tools/validate_theory_working_characteristics.py \
@@ -140,7 +138,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          python -m pip install -r requirements.txt -r requirements-paper.txt
       - name: Verify frozen IEEE submission candidate
         run: |
           python tools/verify_ieee_submission_candidate.py \
