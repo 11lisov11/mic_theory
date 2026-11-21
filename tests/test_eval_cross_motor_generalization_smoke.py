@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 
-def test_eval_cross_motor_generalization_dry_smoke(tmp_path: Path) -> None:
+def test_eval_cross_motor_generalization_dry_smoke(tmp_path: Path, smoke_checkpoint_registry: Path) -> None:
     out_dir = tmp_path / "cross_gen"
     cmd = [
         sys.executable,
@@ -22,6 +22,8 @@ def test_eval_cross_motor_generalization_dry_smoke(tmp_path: Path) -> None:
         "--scenarios",
         "speed_step",
         "--dry-run",
+        "--checkpoint-registry",
+        str(smoke_checkpoint_registry),
         "--out-dir",
         str(out_dir),
     ]

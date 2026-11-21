@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -106,5 +107,27 @@ def test_theory_validator_cli_creates_output_dirs(tmp_path: Path) -> None:
         str(out_md),
     ]
     subprocess.run(cmd, check=True)
-    assert out_json.exists()
+    report = json.loads(out_json.read_text(encoding="utf-8"))
+    assert report["passed"] is True
+    assert report["hard_fail_count"] == 0
+    assert out_md.exists()
+
+
+def test_theory_validator_cli_rejects_legacy_air56_curve(tmp_path: Path) -> None:
+    # Exact historical export from commit 49e4b8e, now a regression input.
+    csv_path = Path(__file__).with_name("fixtures") / "air56_legacy_working_characteristics.csv"
+    out_json = tmp_path / "report.json"
+    out_md = tmp_path / "report.md"
+    result = subprocess.run(
+        [sys.executable, "tools/validate_theory_working_characteristics.py",
+         "--csv", str(csv_path), "--out-json", str(out_json), "--out-md", str(out_md)],
+        check=False,
+    )
+    assert result.returncode == 1
+    report = json.loads(out_json.read_text(encoding="utf-8"))
+    assert report["passed"] is False
+    assert {check["name"] for check in report["checks"]
+            if not check["passed"] and check["severity"] == "error"} == {
+        "FOC:eta_spike_detector", "MIC_AI:n2_spike_detector", "MIC_AI:eta_spike_detector",
+    }
     assert out_md.exists()

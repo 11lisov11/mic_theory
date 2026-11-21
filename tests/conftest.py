@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 import numpy as np
 import pytest
 
@@ -38,3 +41,29 @@ def pytest_collection_modifyitems(items) -> None:
         filename = item.path.name
         if filename in SLOW_TEST_FILES or any(item.name.startswith(prefix) for prefix in SLOW_TEST_PREFIXES):
             item.add_marker(slow_marker)
+
+
+@pytest.fixture
+def smoke_checkpoint_registry(tmp_path: Path) -> Path:
+    """Supply a valid synthetic actor without requiring unpublished checkpoints."""
+    import torch
+
+    from mic_ai.ai.agents.ppo_voltage import PPOVoltageAgent
+    from mic_ai.ai.train_ai_id_ref import build_feature_keys
+
+    with torch.random.fork_rng(devices=[]):
+        agent = PPOVoltageAgent(
+            feature_keys=build_feature_keys(True, False),
+            action_dim=1,
+            device="cpu",
+            hidden_sizes=(64, 64),
+        )
+    state = {name: torch.zeros_like(tensor) for name, tensor in agent.net.state_dict().items()}
+    motors = {}
+    for motor in ("air56", "al31", "ao2"):
+        checkpoint = tmp_path / f"{motor}_actor.pth"
+        torch.save(state, checkpoint)
+        motors[motor] = str(checkpoint)
+    registry = tmp_path / "checkpoint_registry.json"
+    registry.write_text(json.dumps({"motors": motors}), encoding="utf-8")
+    return registry

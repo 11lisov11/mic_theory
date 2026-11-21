@@ -116,15 +116,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt -r requirements-paper.txt
       - name: Theory validation smoke
-        run: |
-          python tools/validate_theory_working_characteristics.py \
-            --csv paper/pgups_2026/fig/working_characteristics_air56_foc_mic_table.csv \
-            --out-json outputs/theory_validation_ci/report.json \
-            --out-md outputs/theory_validation_ci/report.md
-      - name: Validate theory report artifacts
-        run: |
-          test -f outputs/theory_validation_ci/report.json
-          test -f outputs/theory_validation_ci/report.md
+        run: python -m pytest -q tests/test_theory_validator.py
 
   ieee-frozen-verify:
     runs-on: ubuntu-latest

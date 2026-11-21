@@ -8,7 +8,7 @@ from pathlib import Path
 import pandas as pd
 
 
-def test_ao2_hardening_sweep_smoke(tmp_path: Path) -> None:
+def test_ao2_hardening_sweep_smoke(tmp_path: Path, smoke_checkpoint_registry: Path) -> None:
     out_dir = tmp_path / "ao2_hardening"
     cmd = [
         sys.executable,
@@ -25,6 +25,8 @@ def test_ao2_hardening_sweep_smoke(tmp_path: Path) -> None:
         "2",
         "--search-seed",
         "12345",
+        "--checkpoint-registry",
+        str(smoke_checkpoint_registry),
     ]
     subprocess.run(cmd, check=True, cwd=Path(__file__).resolve().parents[1])
 
