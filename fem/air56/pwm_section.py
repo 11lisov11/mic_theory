@@ -200,10 +200,10 @@ def switched_run(poles, forward, backward, drive, voltage_flux, load_linkage, cu
     return trace, events[:recorded], absolute_delta, np.sqrt(sample_square/periods), sign_disagreement
 
 
-def demodulate(traces, periods):
+def demodulate(traces, periods, *, center_s=None):
     """Fit the paired 100 Hz response and the working-field sidebands."""
     times = (np.arange(periods)+.5)*PWM_PERIOD_S
-    use = times >= .2
+    use = times >= .2 if center_s is None else abs(times-center_s)<.1
     harmonics = np.arange(1, 41)*LOAD_HZ
     angle = TAU*times[use, None]*harmonics
     design = np.column_stack((np.ones(use.sum()), np.cos(angle), np.sin(angle)))

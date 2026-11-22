@@ -140,7 +140,8 @@ def advance_modal(state, poles, decay, hold, drive, legs, rise, fall, base_volta
 
 @njit(cache=True)
 def moving_run(poles, decay, hold, forward, backward, drive, legs, flux, linkage,
-               offset, angular_step, theta_initial, rpm, current_peak, probe_axis, periods, motion_block, capture_periods):
+               offset, angular_step, theta_initial, rpm, current_peak, probe_axis, periods, motion_block, capture_periods,
+               ramp_start_s=0., ramp_duration_s=0., terminal_rpm=0.):
     """Propagate between remeshed FE operators without restarting cage history."""
     n, phase_nodes, dimension = poles.shape
     state_a, state_b = np.zeros(dimension), np.zeros(dimension)
@@ -151,10 +152,16 @@ def moving_run(poles, decay, hold, forward, backward, drive, legs, flux, linkage
     previous_angle, previous_phase, previous_weight = -1, -1, 0.
     recorded, changes = 0, 0
     coefficient_derivative_norm = 0.
-    mechanical = TAU*rpm/60
     for sample in range(periods):
         t = (sample+.5)*PWM_PERIOD_S
-        theta = theta_initial+mechanical*t
+        active_rpm, integral_rpm = rpm, rpm*t
+        if ramp_duration_s > 0.:
+            fraction = min(max((t-ramp_start_s)/ramp_duration_s, 0.), 1.)
+            excursion = .5*ramp_duration_s*fraction*fraction+max(t-ramp_start_s-ramp_duration_s,0.)
+            active_rpm += (terminal_rpm-rpm)*fraction
+            integral_rpm += (terminal_rpm-rpm)*excursion
+        mechanical = TAU*active_rpm/60
+        theta = theta_initial+TAU*integral_rpm/60
         index = (theta-offset)/angular_step
         if index < -1e-8 or index > n-1+1e-8:
             raise ValueError("rotor trajectory left the prepared moving-band interval")
