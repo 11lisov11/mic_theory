@@ -45,7 +45,7 @@ class FullSection:
     loaded_field: np.ndarray
 
 
-def projected_section(geometry, section, fundamental, rank):
+def section_matrices(geometry, section, fundamental):
     basis = Basis(section.mesh, ElementTriP1(), intorder=2)
     free = basis.complement_dofs(basis.get_dofs())
     winding = winding_rhs(geometry, section, basis)[free]
@@ -54,32 +54,42 @@ def projected_section(geometry, section, fundamental, rank):
     tangent = fundamental["tangent"]
     matrices = tuple(tensor_matrix(basis, (v[:, k] for v in tangent))[free][:, free].tocsc()
                      for k in range(tangent[0].shape[1]))
-    columns = []
-    for phase in (0, 3, 6, 9):
-        stiffness = matrices[phase]
-        for freq in (0., 100., 600., 4000., 16000., 64000.):
-            iw = 1j*TAU*freq
-            raw = splu((stiffness+iw*cage).tocsc()).solve(np.column_stack((winding, iw*integral)))
-            potential, neutral = raw[:, :2], raw[:, 2]
-            if freq:
-                potential += neutral[:, None]*((integral @ potential)/(total-integral @ neutral))
-            columns.extend((potential.real, potential.imag))
-    snapshots = np.column_stack(columns)
-    norms = np.linalg.norm(snapshots, axis=0)
-    active = norms > 1e-12*norms.max()
-    modes, singular, _ = np.linalg.svd(snapshots[:, active]/norms[active], full_matrices=False)
-    vectors = modes[:, :min(rank, np.count_nonzero(singular > 1e-9*singular[0]))]
-    projected_integral = vectors.T @ integral
-    mass = vectors.T @ (cage @ vectors)-np.outer(projected_integral, projected_integral)/total
     state = fundamental["state"]
     count = len(free)
     potential = np.zeros(basis.N, dtype=complex)
     potential[free] = state[:count]+1j*state[count:2*count]
     linkage = (2/3)*geometry.stack_length*(winding.T @ potential[free])
+    full = FullSection(cage, integral, total, winding, basis, free, section.steel,
+                       basis.interpolate(potential).grad[..., 0])
+    return full, matrices, linkage
+
+
+def response_snapshots(full, matrices, phases=(0, 3, 6, 9)):
+    columns = []
+    for phase in phases:
+        stiffness = matrices[phase]
+        for freq in (0., 100., 600., 4000., 16000., 64000.):
+            iw = 1j*TAU*freq
+            raw = splu((stiffness+iw*full.cage).tocsc()).solve(np.column_stack((full.winding, iw*full.integral)))
+            potential, neutral = raw[:, :2], raw[:, 2]
+            if freq:
+                potential += neutral[:, None]*((full.integral @ potential)/(full.conductance-full.integral @ neutral))
+            columns.extend((potential.real, potential.imag))
+    snapshots = np.column_stack(columns)
+    norms = np.linalg.norm(snapshots, axis=0)
+    active = norms > 1e-12*norms.max()
+    return snapshots[:, active]/norms[active]
+
+
+def projected_section(geometry, section, fundamental, rank):
+    full, matrices, linkage = section_matrices(geometry, section, fundamental)
+    modes, singular, _ = np.linalg.svd(response_snapshots(full, matrices), full_matrices=False)
+    vectors = modes[:, :min(rank, np.count_nonzero(singular > 1e-9*singular[0]))]
+    projected_integral = vectors.T @ full.integral
+    mass = vectors.T @ (full.cage @ vectors)-np.outer(projected_integral, projected_integral)/full.conductance
     reduced = Projection(np.array([vectors.T @ (k @ vectors) for k in matrices]),
-                         mass, vectors.T @ winding, linkage)
-    return reduced, FullSection(cage, integral, total, winding, basis, free,
-                               section.steel, basis.interpolate(potential).grad[..., 0])
+                         mass, vectors.T @ full.winding, linkage)
+    return reduced, full
 
 
 def rotate_projection(section, sector):
@@ -207,7 +217,7 @@ def demodulate(traces, periods):
     return envelope.reshape(6, 2, 2)
 
 
-def direct_nonlinear_trace(section, events, stack_length, current_peak, subdivisions):
+def direct_nonlinear_trace(section, events, stack_length, current_peak, subdivisions, *, moving_sections=None):
     """Full-space, nonlinear B-H integration on a captured PWM edge schedule."""
     rows = int(events[-1, 0])+1
     result = np.zeros((rows, 2))
@@ -222,6 +232,9 @@ def direct_nonlinear_trace(section, events, stack_length, current_peak, subdivis
     max_residual, max_increment = 0., 0.
     for period, end, duration, va, vb in events:
         row = int(period)
+        if moving_sections is not None:
+            section = moving_sections[row]
+            basis = section.basis
         dt = duration/subdivisions
         forcing = winding @ np.array([va, vb])/STATOR_OHM
         for n in range(subdivisions):
