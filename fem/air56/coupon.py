@@ -27,6 +27,8 @@ class Coupon:
     contact_positions_mm: tuple = (-3.55, 3.55)
     radial_contact_mm: float = 0.0
     cage_return: bool = False
+    radial_half_extent_mm: float = 3.0
+    tangential_half_extent_mm: float = 6.0
 
 
 @BilinearForm(dtype=np.complex128)
@@ -47,8 +49,11 @@ def make_problem(cfg, refinement, padding_mm=3.0, air_sigma=AIR_SIGMA):
     faces = sorted(np.r_[starts - cfg.thickness_mm / 2, starts + cfg.thickness_mm / 2])
     half = cfg.width_mm / 2
     r = cfg.radial_contact_mm
-    x = _axis(sorted({-3 - padding_mm, -3, r-half, r+half, 3, 3 + padding_mm}), 3/refinement)
-    y = _axis(sorted({-6 - padding_mm, -6, 6, 6 + padding_mm} |
+    rx, ty = cfg.radial_half_extent_mm, cfg.tangential_half_extent_mm
+    if abs(r)+half >= rx or any(abs(pos)+half >= ty for pos in cfg.contact_positions_mm):
+        raise ValueError("contact footprint must fit inside the coupon")
+    x = _axis(sorted({-rx-padding_mm, -rx, r-half, r+half, rx, rx+padding_mm}), 3/refinement)
+    y = _axis(sorted({-ty-padding_mm, -ty, ty, ty+padding_mm} |
                      {p + sign*half for p, sign in product(cfg.contact_positions_mm, (-1, 1))}), 3/refinement)
     z = np.r_[_axis([faces[0]-padding_mm, faces[0]], 3/refinement)[:-1],
               _axis(faces, cfg.thickness_mm/refinement),
@@ -56,10 +61,10 @@ def make_problem(cfg, refinement, padding_mm=3.0, air_sigma=AIR_SIGMA):
     mesh = MeshTet.init_tensor(x, y, z)
     basis = Basis(mesh, ElementTetN0(), intorder=2)
     centers = mesh.p[:, mesh.t].mean(axis=1)
-    inside = (abs(centers[0]) < 3) & (abs(centers[1]) < 6)
+    inside = (abs(centers[0]) < rx) & (abs(centers[1]) < ty)
     steel = inside & np.any(abs(centers[2, :, None] - starts) < cfg.thickness_mm/2, axis=1)
     cage = (~steel & (centers[0] > r-half) & (centers[0] < r+half)
-            & (centers[1] > 6) & (centers[1] < 6 + padding_mm)
+            & (centers[1] > ty) & (centers[1] < ty+padding_mm)
             & (abs(centers[2]) < faces[-1])) if cfg.cage_return else np.zeros_like(steel)
     masks = tuple((abs(centers[0]-r) < half) & (abs(centers[1]-y_pos) < half)
                   & (abs(centers[2]-z_pos) < cfg.gap_mm/2)

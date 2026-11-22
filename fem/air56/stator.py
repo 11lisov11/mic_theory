@@ -119,7 +119,7 @@ def solve_section(g, frequency_hz, pole_pairs=1, *, radial_refinement=1, ntheta=
         response = solver.solve(b)
         offsets = (b @ values_free)/(s-b @ response)
         values_free += response[:, None]*offsets
-        values = np.zeros((basis.N, 2), dtype=complex)
+    values = np.zeros((basis.N, 2), dtype=complex)
     values[free] = values_free
     fields = [basis.interpolate(values[:, idx]) for idx in range(2)]
     cage_loss = 0.5*g.stack_length*(omega*slip)**2*np.array([
