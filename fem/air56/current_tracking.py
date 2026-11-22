@@ -50,15 +50,43 @@ def centered(x):
     return x-x.mean(axis=-2, keepdims=True)
 
 
+def anisotropic_current(features):
+    """Return the orthonormal symmetric, trace-free components of the phasor."""
+    return np.stack((features[..., 0]-features[..., 5], features[..., 1]+features[..., 4],
+                     features[..., 2]-features[..., 7], features[..., 3]+features[..., 6]),
+                    axis=-1)/np.sqrt(2)
+
+
 def score_motion(calibration, truth, frequency, volts, sample_noise, seeds, steps=120,
-                 scenario_rpms=(0., -30., -10., -3., -1., 1., 3., 10., 30.)):
-    """Profile out constant current offsets. Confidence integrates over phase."""
+                 scenario_rpms=(0., -30., -10., -3., -1., 1., 3., 10., 30.), *,
+                 anisotropic=False, offset_noise=None, offset_prior=None):
+    """Integrate over starting phase and a constant measurement offset.
+
+    With no offset prior, discard the time mean. A finite offset prior is the
+    standard deviation of the remaining offset after calibration, in amperes
+    per feature. It sets how much the time mean contributes to the likelihood.
+    """
     times = np.arange(steps)*.01
     speeds = np.arange(-36., 36.01, 0.5)
     phase_count = 196 if calibration.period > 1.0 else 48
     phases = np.arange(phase_count)*calibration.period/phase_count
+    offset_noise = 5*sample_noise if offset_noise is None else offset_noise
+    reference = volts*real_features(calibration.admittance.mean(axis=0))
+    if anisotropic:
+        reference = anisotropic_current(reference)
+    retention = (None if offset_prior is None else
+                 sample_noise/np.sqrt(sample_noise**2+steps*offset_prior**2))
+
+    def encode(values):
+        if anisotropic:
+            values = anisotropic_current(values)
+        if retention is None:
+            return centered(values)
+        avg = values.mean(axis=-2, keepdims=True)
+        return values-avg+retention*(avg-reference)
+
     prediction = observations(calibration, phases[None, :], speeds[:, None], times, frequency, volts)
-    prediction = centered(prediction).reshape(len(speeds)*len(phases), -1).astype(np.float32)
+    prediction = encode(prediction).reshape(len(speeds)*len(phases), -1).astype(np.float32)
     model_power = np.einsum("ij,ij->i", prediction, prediction)
     scenarios = np.asarray(scenario_rpms, dtype=float)
     rows, truths, measurements = [], [], []
@@ -67,12 +95,12 @@ def score_motion(calibration, truth, frequency, volts, sample_noise, seeds, step
         theta = rng.uniform(0, truth.period, len(scenarios))
         signal = observations(truth, theta, scenarios, times, frequency, volts)
         white = rng.normal(0, sample_noise, signal.shape)
-        offsets = rng.normal(0, 5*sample_noise, (len(theta), 1, signal.shape[-1]))
+        offsets = rng.normal(0, offset_noise, (len(theta), 1, signal.shape[-1]))
         rows.extend(dict(seed=int(seed), true_rpm=float(rpm), start_deg=float(np.rad2deg(phase)))
                     for rpm, phase in zip(scenarios, theta))
         measurements.append(signal+offsets+white)
         truths.append(signal)
-    y = centered(np.concatenate(measurements)).reshape(len(rows), -1).astype(np.float32)
+    y = encode(np.concatenate(measurements)).reshape(len(rows), -1).astype(np.float32)
     traces = np.concatenate(truths)
     likelihood = (y @ prediction.T - 0.5*model_power)/sample_noise**2
     score = logsumexp(likelihood.reshape(len(rows), len(speeds), len(phases)), axis=2)

@@ -6,7 +6,7 @@ import pytest
 
 pytest.importorskip("skfem")
 
-from fem.air56.current_tracking import CurrentMap, score_motion
+from fem.air56.current_tracking import CurrentMap, anisotropic_current, real_features, score_motion
 from fem.air56.sliding_section import SlotDesign, make_section, solve
 from fem.air56.stator import Geometry, solve_section
 
@@ -119,3 +119,11 @@ def test_one_tooth_axial_average_cancels_order_eighteen_and_retains_order_two():
     after = np.fft.fft(np.linalg.inv(averaged.admittance)[:, 0, 0])/len(theta)
     assert abs(after[9]) < 1e-12
     assert abs(after[1])/abs(before[1]) == pytest.approx(np.sinc(1/9), abs=.001)
+
+
+def test_anisotropy_channel_keeps_normalized_difference_and_symmetric_cross_current():
+    background = np.array([[3+4j, 5+6j], [-5-6j, 3+4j]])
+    anisotropy = np.array([[1+2j, 3+4j], [3+4j, -1-2j]])
+    expected = np.sqrt(2)*np.array([1., 3., 2., 4.])
+    np.testing.assert_allclose(anisotropic_current(real_features(background)), np.zeros(4))
+    np.testing.assert_allclose(anisotropic_current(real_features(background+anisotropy)), expected)
