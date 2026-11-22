@@ -45,8 +45,10 @@ def article_profile():
     return measured, SlotDesign(opening_fraction=0., opening_depth_m=.0005)
 
 
-def solve_maps(geometry, design, frequency, n, level, offset=0., gap_phase=0):
-    period = 2*np.pi/geometry.rotor_bars
+def solve_maps(geometry, design, frequency, n, level, offset=0., gap_phase=0, *,
+               mechanical_period_rad=None):
+    period = (2*np.pi/geometry.rotor_bars
+              if mechanical_period_rad is None else mechanical_period_rad)
     rows = []
     for theta in np.arange(n)*period/n+offset:
         section = make_section(geometry, theta, level, design, gap_phase=gap_phase,

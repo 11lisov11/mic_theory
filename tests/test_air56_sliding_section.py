@@ -90,3 +90,32 @@ def test_even_current_can_recover_speed_magnitude_without_direction():
         assert row["motion_probability"] >= .95
         assert row["declared_direction"] is None
         assert abs(row["est_abs_rpm"]-abs(row["true_rpm"])) <= .5
+
+
+def test_modulated_eighteen_slots_keep_half_turn_but_lose_tooth_pitch_symmetry():
+    from tools.run_air56_skew_audit import article_profile
+
+    geometry, closed = article_profile()
+    theta = .061
+    design = SlotDesign(opening_fraction=.13, opening_depth_m=closed.opening_depth_m, modulation=.40)
+
+    def impedance(angle):
+        section = make_section(geometry, angle, 4, design, stator_opening_depth_m=.0007)
+        return solve(geometry, 500, section, 27.5/3)["z"]
+
+    reference = impedance(theta)
+    np.testing.assert_allclose(reference, impedance(theta+np.pi), rtol=1e-9, atol=1e-9)
+    assert np.linalg.norm(reference-impedance(theta+2*np.pi/18)) > 0.05
+
+
+def test_one_tooth_axial_average_cancels_order_eighteen_and_retains_order_two():
+    from tools.run_air56_slot_comparison import skewed
+
+    theta = np.arange(144)*np.pi/144
+    impedance = ((10 + .5*np.cos(2*theta) + .2*np.cos(18*theta))*1j)[:, None, None]*np.eye(2)
+    original = CurrentMap.from_impedance(np.pi, impedance)
+    averaged = skewed(original, 2*np.pi/18)
+    before = np.fft.fft(impedance[:, 0, 0])/len(theta)
+    after = np.fft.fft(np.linalg.inv(averaged.admittance)[:, 0, 0])/len(theta)
+    assert abs(after[9]) < 1e-12
+    assert abs(after[1])/abs(before[1]) == pytest.approx(np.sinc(1/9), abs=.001)
