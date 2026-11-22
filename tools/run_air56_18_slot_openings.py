@@ -47,11 +47,11 @@ def article_baseline(path):
                      for z, offset in zip((z_a, z_b), data["offsets"]))
 
 
-def prepared_maps(geometry, design, period, points, levels):
+def prepared_maps(geometry, design, period, points, levels, *, frequency_hz=FREQUENCY_HZ):
     offset = period/(2*points)
-    z_a, a_metrics = solve_maps(geometry, design, FREQUENCY_HZ, points, levels[0],
+    z_a, a_metrics = solve_maps(geometry, design, frequency_hz, points, levels[0],
                                 mechanical_period_rad=period)
-    z_b, b_metrics = solve_maps(geometry, design, FREQUENCY_HZ, points, levels[1],
+    z_b, b_metrics = solve_maps(geometry, design, frequency_hz, points, levels[1],
                                 offset=offset, gap_phase=1, mechanical_period_rad=period)
     first = CurrentMap.from_impedance(period, z_a)
     second = CurrentMap.from_impedance(period, z_b, offset)

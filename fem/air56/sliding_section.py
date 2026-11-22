@@ -20,6 +20,8 @@ class SlotDesign:
     modulation: float = 0.0
     # The opening profile is mechanically opposed. The bar bodies are fixed.
     modulation_order: int = 2
+    surface_recess_m: float = 0.0
+    bar_width_modulation: float = 0.0
 
 
 @dataclass
@@ -63,12 +65,18 @@ def make_section(g, angle, level, design=SlotDesign(), gap_phase=0,
         raise ValueError("the double-sided phase-belt winding requires a multiple of six slots")
     if not 0 <= design.modulation < 1 or not 0 < design.opening_depth_m < g.rotor_bar_depth:
         raise ValueError("invalid rotor slot design")
+    if not 0 <= design.surface_recess_m < design.opening_depth_m:
+        raise ValueError("surface recess must stay outside the bar region")
     bore = g.rotor_radius+g.air_gap
+    centers = (np.arange(nr)+0.5)*TAU/nr
     opening = design.opening_fraction*(1+design.modulation*np.cos(
-        design.modulation_order*(np.arange(nr)+0.5)*TAU/nr))
-    if np.any(opening < 0) or np.any(opening >= g.rotor_bar_fraction):
+        design.modulation_order*centers))
+    bar_width = g.rotor_bar_fraction*(1+design.bar_width_modulation*np.cos(2*centers))
+    if np.any(bar_width <= 0) or np.any(bar_width >= 1):
+        raise ValueError("bar width must lie within one rotor pitch")
+    if np.any(opening < 0) or np.any(opening >= bar_width):
         raise ValueError("slot opening must be nonnegative and smaller than its bar body")
-    rt = angular_grid(nr, (opening, np.full(nr, g.rotor_bar_fraction)), level)
+    rt = angular_grid(nr, (opening, bar_width), level)
     if not 0 < stator_opening_fraction <= g.stator_slot_fraction:
         raise ValueError("stator opening must fit inside its winding slot")
     st = angular_grid(ns, (np.full(ns, g.stator_slot_fraction),
@@ -94,7 +102,13 @@ def make_section(g, angle, level, design=SlotDesign(), gap_phase=0,
         ntheta = len(theta)
         ids = len(vertices)+np.arange(len(radii)*ntheta).reshape(-1, ntheta)
         unit = np.column_stack((np.cos(theta+rotation), np.sin(theta+rotation)))
-        vertices.extend((radii[:, None, None]*unit[None]).reshape(-1, 2))
+        radial_nodes = radii[:, None]
+        if rotor and design.surface_recess_m:
+            # Move only the crown between the bar roof and the rotor surface.
+            crown = np.clip((radii-g.rotor_radius+design.opening_depth_m)/design.opening_depth_m, 0., 1.)
+            recess = design.surface_recess_m*np.sin(theta)**2
+            radial_nodes = radial_nodes-crown[:, None]*recess
+        vertices.extend((radial_nodes[..., None]*unit[None]).reshape(-1, 2))
         next_ids = np.roll(ids, -1, axis=1)
         middle = (theta+np.r_[theta[1:], theta[0]+TAU])/2
         count = nr if rotor else ns
@@ -102,7 +116,7 @@ def make_section(g, angle, level, design=SlotDesign(), gap_phase=0,
         slot = q.astype(int).clip(0, count-1)
         distance = abs(q-slot-0.5)
         if rotor:
-            bar = distance < g.rotor_bar_fraction/2
+            bar = distance < bar_width[slot]/2
             neck = distance < opening[slot]/2
             conducting = (bands[:, None] == 1) & bar
             material = ~(conducting | ((bands[:, None] == 2) & neck))

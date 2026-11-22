@@ -60,7 +60,7 @@ def anisotropic_current(features):
 def score_motion(calibration, truth, frequency, volts, sample_noise, seeds, steps=120,
                  scenario_rpms=(0., -30., -10., -3., -1., 1., 3., 10., 30.), *,
                  anisotropic=False, offset_noise=None, offset_prior=None,
-                 observation_noise=None, refine_speed=False):
+                 observation_noise=None, refine_speed=False, sample_interval_s=.01):
     """Integrate over starting phase and a constant measurement offset.
 
     With no offset prior, discard the time mean. A finite offset prior is the
@@ -69,7 +69,7 @@ def score_motion(calibration, truth, frequency, volts, sample_noise, seeds, step
     The simulation can vary the observation noise independently of the assumed
     likelihood noise. Speed refinement preserves motion and direction decisions.
     """
-    times = np.arange(steps)*.01
+    times = np.arange(steps)*sample_interval_s
     speeds = np.arange(-36., 36.01, 0.5)
     phase_count = 196 if calibration.period > 1.0 else 48
     phases = np.arange(phase_count)*calibration.period/phase_count

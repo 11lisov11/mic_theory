@@ -144,3 +144,52 @@ def test_local_speed_refinement_preserves_gate_and_resolves_off_grid_speed():
         assert row["declared_direction"] == np.sign(row["true_rpm"])
         assert abs(row["est_refined_rpm"]-row["true_rpm"]) <= .08
         assert abs(row["est_refined_rpm"]-row["true_rpm"]) < abs(row["est_rpm"]-row["true_rpm"])
+
+
+def test_oval_gap_preserves_closed_bar_geometry_and_half_turn_response():
+    from dataclasses import replace
+    from tools.run_air56_skew_audit import article_profile
+
+    geometry, closed = article_profile()
+    recess = .00015
+    oval = replace(closed, surface_recess_m=recess)
+    angle = .064
+    circular = make_section(geometry, angle, 4, closed)
+    section = make_section(geometry, angle, 4, oval)
+    np.testing.assert_array_equal(section.cage, circular.cage)
+    np.testing.assert_array_equal(section.steel, circular.steel)
+    cage_nodes = np.unique(section.mesh.t[:, section.cage])
+    np.testing.assert_allclose(section.mesh.p[:, cage_nodes], circular.mesh.p[:, cage_nodes], atol=1e-14)
+    radii = np.linalg.norm(section.mesh.p, axis=0)
+    crown = radii[(radii >= geometry.rotor_radius-recess-1e-12) & (radii <= geometry.rotor_radius+1e-12)]
+    assert crown.min() == pytest.approx(geometry.rotor_radius-recess)
+    assert crown.max() == pytest.approx(geometry.rotor_radius)
+
+    response = solve(geometry, 500, section, 27.5/3)["z"]
+    equivalent = solve(geometry, 500, make_section(geometry, angle+np.pi, 4, oval), 27.5/3)["z"]
+    turned = solve(geometry, 500, make_section(geometry, angle+np.pi/2, 4, oval), 27.5/3)["z"]
+    np.testing.assert_allclose(response, equivalent, rtol=1e-9, atol=1e-9)
+    assert np.linalg.norm(response-turned) > .05
+
+
+def test_width_modulation_changes_bars_while_preserving_total_cage_area():
+    from dataclasses import replace
+    from tools.run_air56_skew_audit import article_profile
+
+    geometry, closed = article_profile()
+
+    def bar_areas(design):
+        section = make_section(geometry, 0., 8, design)
+        points = section.mesh.p[:, section.mesh.t[:, section.cage]]
+        a, b = points[:, 1]-points[:, 0], points[:, 2]-points[:, 0]
+        area = .5*abs(a[0]*b[1]-a[1]*b[0])
+        centroid = points.mean(axis=1)
+        theta = np.arctan2(centroid[1], centroid[0]) % (2*np.pi)
+        slots = np.floor(theta*geometry.rotor_bars/(2*np.pi)).astype(int)
+        return np.bincount(slots, weights=area, minlength=geometry.rotor_bars)
+
+    control = bar_areas(closed)
+    variable = bar_areas(replace(closed, bar_width_modulation=.60))
+    np.testing.assert_allclose(variable[:9], variable[9:], rtol=1e-10)
+    assert variable.max()/variable.min() > 3.5
+    assert variable.sum() == pytest.approx(control.sum(), rel=.003)
