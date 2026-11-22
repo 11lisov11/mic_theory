@@ -66,6 +66,21 @@ def harmonic_current(table, mechanical_order):
     return float(2*np.linalg.norm(response[order]))
 
 
+def motion_results(name, calibration, truth, skew_pitches, seconds, noise, speeds):
+    trials = score_motion(calibration, truth, FREQUENCY_HZ, VOLTAGE_PEAK, noise,
+                          SEEDS, steps=int(round(100*seconds)), scenario_rpms=speeds)
+    rows = [dict(profile=name, skew_pitches=skew_pitches, window_s=seconds, **trial)
+            for trial in trials]
+    groups = group_summary(trials, name, skew_pitches, noise, seconds)
+    joint_counts = Counter(abs(r["true_rpm"]) for r in trials
+                           if r["motion_probability"] >= .95
+                           and r["declared_direction"] == np.sign(r["true_rpm"]))
+    for group in groups:
+        speed = group["abs_rpm"]
+        group["moving_correct_direction"] = joint_counts[speed] if speed else None
+    return rows, groups
+
+
 def assess_design(name, a, b, pitch_rad):
     rows, summary, contrast_rows = [], [], []
     scenarios = [(seconds, noise, RPM) for seconds in (1.2, .24) for noise in NOISE]
@@ -81,17 +96,8 @@ def assess_design(name, a, b, pitch_rad):
                                   second_harmonic_a_per_v=harmonic_current(truth, 2),
                                   tooth_harmonic_a_per_v=harmonic_current(truth, 18)))
         for seconds, noise, speeds in scenarios:
-            result = score_motion(calibration, truth, FREQUENCY_HZ, VOLTAGE_PEAK, noise,
-                                  SEEDS, steps=int(round(100*seconds)), scenario_rpms=speeds)
-            rows.extend(dict(profile=name, skew_pitches=skew_pitches, window_s=seconds, **r)
-                        for r in result)
-            groups = group_summary(result, name, skew_pitches, noise, seconds)
-            joint_counts = Counter(abs(r["true_rpm"]) for r in result
-                                   if r["motion_probability"] >= .95
-                                   and r["declared_direction"] == np.sign(r["true_rpm"]))
-            for group in groups:
-                speed = group["abs_rpm"]
-                group["moving_correct_direction"] = joint_counts[speed] if speed else None
+            result, groups = motion_results(name, calibration, truth, skew_pitches, seconds, noise, speeds)
+            rows.extend(result)
             summary.extend(groups)
     return rows, summary, contrast_rows
 
