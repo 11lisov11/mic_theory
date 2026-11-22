@@ -60,7 +60,8 @@ def anisotropic_current(features):
 def score_motion(calibration, truth, frequency, volts, sample_noise, seeds, steps=120,
                  scenario_rpms=(0., -30., -10., -3., -1., 1., 3., 10., 30.), *,
                  anisotropic=False, offset_noise=None, offset_prior=None,
-                 observation_noise=None, refine_speed=False, sample_interval_s=.01):
+                 observation_noise=None, refine_speed=False, sample_interval_s=.01,
+                 observation_model=observations):
     """Integrate over starting phase and a constant measurement offset.
 
     With no offset prior, discard the time mean. A finite offset prior is the
@@ -90,7 +91,7 @@ def score_motion(calibration, truth, frequency, volts, sample_noise, seeds, step
         return values-avg+retention*(avg-reference)
 
     def speed_score(values, candidates):
-        prediction = observations(calibration, phases[None, :], candidates[:, None], times, frequency, volts)
+        prediction = observation_model(calibration, phases[None, :], candidates[:, None], times, frequency, volts)
         prediction = encode(prediction).reshape(len(candidates)*len(phases), -1).astype(np.float32)
         model_power = np.einsum("ij,ij->i", prediction, prediction)
         likelihood = (values @ prediction.T - 0.5*model_power)/sample_noise**2
@@ -100,7 +101,7 @@ def score_motion(calibration, truth, frequency, volts, sample_noise, seeds, step
     for seed in seeds:
         rng = np.random.default_rng(seed)
         theta = rng.uniform(0, truth.period, len(scenarios))
-        signal = observations(truth, theta, scenarios, times, frequency, volts)
+        signal = observation_model(truth, theta, scenarios, times, frequency, volts)
         white = rng.normal(0, observation_noise, signal.shape)
         offsets = rng.normal(0, offset_noise, (len(theta), 1, signal.shape[-1]))
         rows.extend(dict(seed=int(seed), true_rpm=float(rpm), start_deg=float(np.rad2deg(phase)))

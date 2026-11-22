@@ -159,12 +159,7 @@ def make_section(g, angle, level, design=SlotDesign(), gap_phase=0,
     return Section(mesh, np.array(cage), np.array(steel), np.array(winding_slots), iss[-1], transfer_points, angle)
 
 
-def solve(g, frequency, section, stator_resistance, *, transfer=False, current_source="belts"):
-    mesh = section.mesh
-    basis = Basis(mesh, ElementTriP2(), intorder=4)
-    sigma = np.where(section.cage, g.aluminium_sigma, 0.0)
-    nu = 1/(MU0*np.where(section.steel, g.mu_r, 1.0))
-    w = TAU*frequency
+def winding_rhs(g, section, basis, current_source="belts"):
     areas = basis.dx.sum(axis=1)
     slot = section.winding_slot
     valid = slot >= 0
@@ -180,7 +175,16 @@ def solve(g, frequency, section, stator_resistance, *, transfer=False, current_s
         density = np.where(valid[:, None], direction[slot]*amp[slot, None], 0.).T[:, :, None]
     else:
         raise ValueError(f"unknown winding {current_source}")
-    rhs = np.column_stack([current.assemble(basis, source=u) for u in density])
+    return np.column_stack([current.assemble(basis, source=u) for u in density])
+
+
+def solve(g, frequency, section, stator_resistance, *, transfer=False, current_source="belts"):
+    basis = Basis(section.mesh, ElementTriP2(), intorder=4)
+    sigma = np.where(section.cage, g.aluminium_sigma, 0.0)
+    nu = 1/(MU0*np.where(section.steel, g.mu_r, 1.0))
+    w = TAU*frequency
+    areas = basis.dx.sum(axis=1)
+    rhs = winding_rhs(g, section, basis, current_source)
     matrix = magnetic.assemble(basis, nu=nu[:, None], electric=(1j*w*sigma)[:, None])
     free = basis.complement_dofs(basis.get_dofs())
     inner = matrix[free][:, free].tocsc()
