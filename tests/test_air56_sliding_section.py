@@ -127,3 +127,20 @@ def test_anisotropy_channel_keeps_normalized_difference_and_symmetric_cross_curr
     expected = np.sqrt(2)*np.array([1., 3., 2., 4.])
     np.testing.assert_allclose(anisotropic_current(real_features(background)), np.zeros(4))
     np.testing.assert_allclose(anisotropic_current(real_features(background+anisotropy)), expected)
+
+
+def test_local_speed_refinement_preserves_gate_and_resolves_off_grid_speed():
+    period = np.pi
+    theta = np.arange(128)*period/128
+    cosine, sine = np.cos(2*theta), np.sin(2*theta)
+    response = .05*np.eye(2)+.004*np.array([[cosine, sine], [sine, -cosine]]).transpose(2, 0, 1)
+    table = CurrentMap(period, response)
+    rows = score_motion(table, table, 500, 1., .0003, [20], steps=240,
+                        scenario_rpms=(0., -1.37, 1.37), anisotropic=True, offset_prior=.0001,
+                        offset_noise=0., observation_noise=0., refine_speed=True)
+    assert rows[0]["est_refined_rpm"] is None
+    for row in rows[1:]:
+        assert row["motion_probability"] >= .95
+        assert row["declared_direction"] == np.sign(row["true_rpm"])
+        assert abs(row["est_refined_rpm"]-row["true_rpm"]) <= .08
+        assert abs(row["est_refined_rpm"]-row["true_rpm"]) < abs(row["est_rpm"]-row["true_rpm"])

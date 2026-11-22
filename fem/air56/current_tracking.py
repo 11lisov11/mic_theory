@@ -59,18 +59,22 @@ def anisotropic_current(features):
 
 def score_motion(calibration, truth, frequency, volts, sample_noise, seeds, steps=120,
                  scenario_rpms=(0., -30., -10., -3., -1., 1., 3., 10., 30.), *,
-                 anisotropic=False, offset_noise=None, offset_prior=None):
+                 anisotropic=False, offset_noise=None, offset_prior=None,
+                 observation_noise=None, refine_speed=False):
     """Integrate over starting phase and a constant measurement offset.
 
     With no offset prior, discard the time mean. A finite offset prior is the
     standard deviation of the remaining offset after calibration, in amperes
     per feature. It sets how much the time mean contributes to the likelihood.
+    The simulation can vary the observation noise independently of the assumed
+    likelihood noise. Speed refinement preserves motion and direction decisions.
     """
     times = np.arange(steps)*.01
     speeds = np.arange(-36., 36.01, 0.5)
     phase_count = 196 if calibration.period > 1.0 else 48
     phases = np.arange(phase_count)*calibration.period/phase_count
     offset_noise = 5*sample_noise if offset_noise is None else offset_noise
+    observation_noise = sample_noise if observation_noise is None else observation_noise
     reference = volts*real_features(calibration.admittance.mean(axis=0))
     if anisotropic:
         reference = anisotropic_current(reference)
@@ -85,16 +89,19 @@ def score_motion(calibration, truth, frequency, volts, sample_noise, seeds, step
         avg = values.mean(axis=-2, keepdims=True)
         return values-avg+retention*(avg-reference)
 
-    prediction = observations(calibration, phases[None, :], speeds[:, None], times, frequency, volts)
-    prediction = encode(prediction).reshape(len(speeds)*len(phases), -1).astype(np.float32)
-    model_power = np.einsum("ij,ij->i", prediction, prediction)
+    def speed_score(values, candidates):
+        prediction = observations(calibration, phases[None, :], candidates[:, None], times, frequency, volts)
+        prediction = encode(prediction).reshape(len(candidates)*len(phases), -1).astype(np.float32)
+        model_power = np.einsum("ij,ij->i", prediction, prediction)
+        likelihood = (values @ prediction.T - 0.5*model_power)/sample_noise**2
+        return logsumexp(likelihood.reshape(len(values), len(candidates), len(phases)), axis=2)
     scenarios = np.asarray(scenario_rpms, dtype=float)
     rows, truths, measurements = [], [], []
     for seed in seeds:
         rng = np.random.default_rng(seed)
         theta = rng.uniform(0, truth.period, len(scenarios))
         signal = observations(truth, theta, scenarios, times, frequency, volts)
-        white = rng.normal(0, sample_noise, signal.shape)
+        white = rng.normal(0, observation_noise, signal.shape)
         offsets = rng.normal(0, offset_noise, (len(theta), 1, signal.shape[-1]))
         rows.extend(dict(seed=int(seed), true_rpm=float(rpm), start_deg=float(np.rad2deg(phase)))
                     for rpm, phase in zip(scenarios, theta))
@@ -102,8 +109,7 @@ def score_motion(calibration, truth, frequency, volts, sample_noise, seeds, step
         truths.append(signal)
     y = encode(np.concatenate(measurements)).reshape(len(rows), -1).astype(np.float32)
     traces = np.concatenate(truths)
-    likelihood = (y @ prediction.T - 0.5*model_power)/sample_noise**2
-    score = logsumexp(likelihood.reshape(len(rows), len(speeds), len(phases)), axis=2)
+    score = speed_score(y, speeds)
     p = np.exp(score-logsumexp(score, axis=1, keepdims=True))
     classes = np.stack((p[:, speeds < -0.5].sum(axis=1),
                         p[:, abs(speeds) <= 0.5].sum(axis=1), p[:, speeds > 0.5].sum(axis=1)), axis=1)
@@ -120,11 +126,24 @@ def score_motion(calibration, truth, frequency, volts, sample_noise, seeds, step
     moving_score = logsumexp(score[:, moving], axis=1)-np.log(moving.sum())
     rest_score = logsumexp(score[:, ~moving], axis=1)-np.log((~moving).sum())
     moving_p = expit(moving_score-rest_score)
+    refined = {}
+    if refine_speed:
+        accepted = np.flatnonzero((moving_p >= .95) & (confidence >= .95) & (sign != 0))
+        in_class = (speeds[None, :]*sign[accepted, None]) > .5
+        coarse = speeds[np.argmax(np.where(in_class, score[accepted], -np.inf), axis=1)]
+        for rpm in np.unique(coarse):
+            selection = accepted[coarse == rpm]
+            candidates = rpm + np.arange(-10, 11)*.05
+            candidates = candidates[(candidates*np.sign(rpm) > .5) & (abs(candidates) <= max(speeds))]
+            best = np.argmax(speed_score(y[selection], candidates), axis=1)
+            refined.update(zip(selection, candidates[best]))
     for i, row in enumerate(rows):
         row.update(est_rpm=float(maps[i]), declared_direction=int(sign[i]) if confidence[i] >= 0.95 else None,
                    confidence=float(confidence[i]), sample_noise_a=float(sample_noise),
                    est_abs_rpm=float(amplitude_maps[i]), motion_probability=float(moving_p[i]),
                    centered_signal_rms_a=float(np.sqrt(np.mean(centered(traces[i])**2))))
+        if refine_speed:
+            row["est_refined_rpm"] = float(refined[i]) if i in refined else None
     return rows
 
 
