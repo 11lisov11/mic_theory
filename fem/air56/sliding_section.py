@@ -57,7 +57,7 @@ def radial_grid(breaks, subdivisions):
 
 
 def make_section(g, angle, level, design=SlotDesign(), gap_phase=0,
-                 stator_opening_fraction=.16):
+                 stator_opening_fraction=.16, stator_opening_depth_m=.00065):
     ns, nr = g.stator_slots, g.rotor_bars
     if ns % 6:
         raise ValueError("the double-sided phase-belt winding requires a multiple of six slots")
@@ -66,8 +66,8 @@ def make_section(g, angle, level, design=SlotDesign(), gap_phase=0,
     bore = g.rotor_radius+g.air_gap
     opening = design.opening_fraction*(1+design.modulation*np.cos(
         design.modulation_order*(np.arange(nr)+0.5)*TAU/nr))
-    if np.any(opening <= 0) or np.any(opening >= g.rotor_bar_fraction):
-        raise ValueError("slot opening must be smaller than its bar body")
+    if np.any(opening < 0) or np.any(opening >= g.rotor_bar_fraction):
+        raise ValueError("slot opening must be nonnegative and smaller than its bar body")
     rt = angular_grid(nr, (opening, np.full(nr, g.rotor_bar_fraction)), level)
     if not 0 < stator_opening_fraction <= g.stator_slot_fraction:
         raise ValueError("stator opening must fit inside its winding slot")
@@ -76,7 +76,9 @@ def make_section(g, angle, level, design=SlotDesign(), gap_phase=0,
     rr, rb = radial_grid((g.shaft_radius, g.rotor_radius-g.rotor_bar_depth,
                           g.rotor_radius-design.opening_depth_m, g.rotor_radius),
                          (max(2, level//2), level, max(2, level//3)))
-    rs, sb = radial_grid((bore, bore+.00065, bore+g.stator_slot_depth,
+    if not 0 < stator_opening_depth_m < g.stator_slot_depth:
+        raise ValueError("stator neck depth must fit inside its winding slot")
+    rs, sb = radial_grid((bore, bore+stator_opening_depth_m, bore+g.stator_slot_depth,
                           g.stator_radius, 1.15*g.stator_radius),
                          (max(2, level//3), level, max(2, level//2), max(2, level//2)))
     vertices, triangles, cage, steel, winding_slots = [[0., 0.]], [], [], [], []

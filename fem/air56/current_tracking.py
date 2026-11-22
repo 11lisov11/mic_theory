@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 
 import numpy as np
-from scipy.special import logsumexp
+from scipy.special import expit, logsumexp
 
 
 @dataclass(frozen=True)
@@ -82,9 +82,20 @@ def score_motion(calibration, truth, frequency, volts, sample_noise, seeds, step
     sign = np.argmax(classes, axis=1)-1
     confidence = classes.max(axis=1)
     maps = speeds[np.argmax(p, axis=1)]
+    zero = len(speeds)//2
+    absolute_p = p[:, zero:].copy()
+    absolute_p[:, 1:] += p[:, :zero][:, ::-1]
+    amplitude_maps = speeds[zero:][np.argmax(absolute_p, axis=1)]
+    moving = abs(speeds) > 0.5
+    # Compare mean likelihoods with equal prior odds for motion and rest.
+    # Counting every grid point with equal mass would give motion a 98% prior.
+    moving_score = logsumexp(score[:, moving], axis=1)-np.log(moving.sum())
+    rest_score = logsumexp(score[:, ~moving], axis=1)-np.log((~moving).sum())
+    moving_p = expit(moving_score-rest_score)
     for i, row in enumerate(rows):
         row.update(est_rpm=float(maps[i]), declared_direction=int(sign[i]) if confidence[i] >= 0.95 else None,
                    confidence=float(confidence[i]), sample_noise_a=float(sample_noise),
+                   est_abs_rpm=float(amplitude_maps[i]), motion_probability=float(moving_p[i]),
                    centered_signal_rms_a=float(np.sqrt(np.mean(centered(traces[i])**2))))
     return rows
 

@@ -67,3 +67,26 @@ def test_current_tracker_orders_signed_speeds_and_abstains_without_signal():
     assert max(abs(row["est_rpm"]-row["true_rpm"]) for row in rows) <= .5
     rows = score_motion(flat, flat, 1000, 1.0, .00002, [8])
     assert all(row["declared_direction"] is None for row in rows)
+    np.testing.assert_allclose([row["motion_probability"] for row in rows], .5, atol=1e-12)
+
+
+def test_closed_eighteen_bar_cage_supports_a_scalar_port(geometry):
+    from dataclasses import replace
+
+    g = replace(geometry, rotor_bars=18)
+    theta = .031
+    design = SlotDesign(opening_fraction=0.)
+    z = solve(g, 500, make_section(g, theta, 3, design), 5.5)["z"]
+    np.testing.assert_allclose(z, np.trace(z)/2*np.eye(2), atol=1e-9)
+
+
+def test_even_current_can_recover_speed_magnitude_without_direction():
+    period = 2*np.pi/18
+    angle = np.arange(40)*2*np.pi/40
+    response = CurrentMap(period, (.05+.01*np.cos(angle))[:, None, None]*np.eye(2))
+    rows = score_motion(response, response, 500, 1.0, .00005, [21],
+                        scenario_rpms=(-9.8, 9.8))
+    for row in rows:
+        assert row["motion_probability"] >= .95
+        assert row["declared_direction"] is None
+        assert abs(row["est_abs_rpm"]-abs(row["true_rpm"])) <= .5
