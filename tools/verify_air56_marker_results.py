@@ -90,8 +90,9 @@ def main():
     assert len(read_json(base/paths["fem"]/"refinement_check.json")) == 3
     for path, digest in fem["files_sha256"].items():
         assert sha256(base/paths["fem"]/path) == digest
-    for path, digest in fem["inputs_sha256"].items():
-        assert sha256(ROOT/"research/air56_interlaminar_marker"/path) == digest
+    for path, digest in fem["inputs_canonical_sha256"].items():
+        source = ROOT/"research/air56_interlaminar_marker"/path
+        assert hashlib.sha256(source.read_text(encoding="utf8").encode("utf8")).hexdigest() == digest
     source_hash = fem["files_sha256"]["channel.npz"]
     obs = read_json(base/paths["observability"]/"observability.json")
     assert source_hash == obs["data_sha256"]

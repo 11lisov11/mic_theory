@@ -270,8 +270,10 @@ def main():
         parser.error("choose a new output directory")
     start = perf_counter()
     result = local(json.loads(CONFIG.read_text(encoding="utf8")), args.out, args.fast)
-    result["inputs_sha256"] = {p.name: hashlib.sha256(p.read_bytes()).hexdigest()
-                               for p in (CONFIG, CONFIG.parent/"profiles.json")}
+    input_files = (CONFIG, CONFIG.parent/"profiles.json")
+    result["inputs_sha256"] = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in input_files}
+    result["inputs_canonical_sha256"] = {
+        p.name: hashlib.sha256(p.read_text(encoding="utf8").encode("utf8")).hexdigest() for p in input_files}
     result["elapsed_s"] = perf_counter()-start
     result["versions"] = dict(python=platform.python_version(), numpy=np.__version__,
                               scipy=scipy.__version__, skfem=skfem.__version__, meshio=meshio.__version__)
