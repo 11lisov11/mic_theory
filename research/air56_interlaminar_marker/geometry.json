@@ -1,0 +1,23 @@
+{
+  "status": "reconstructed engineering prior; internal dimensions unmeasured",
+  "internal_source": "Analyst-selected prior for a frame-56 silhouette and mesh sensitivity; no factory lamination drawing found",
+  "external_source": "IEK DRIVE model family catalog and mounting drawings; CAD envelope is approximate",
+  "dimensions_mm": {
+    "shaft_radius": [4.5, 5.5, 8], "rotor_radius": [19, 23.65, 27],
+    "air_gap": [0.2, 0.35, 0.6], "stator_radius": [34, 40, 45],
+    "stack_length": [35, 48, 65], "stator_slot_depth": [5, 9, 12],
+    "rotor_bar_depth": [2, 3.8, 6], "sheet_thickness": [0.25, 0.35, 0.50],
+    "insulation_gap": [0.01, 0.04, 0.05], "contact_width": [0.35, 0.70, 1.35],
+    "housing_radius": [41, 44, 49], "mounting_height": [56, 56, 56]
+  },
+  "stator_slots": [18, 24, 36], "rotor_bars": [20, 28, 34],
+  "equivalent_turns": [100, 180, 280],
+  "steel_mu_r_incremental": [80, 200, 500],
+  "steel_sigma_s_m_20c": [1500000, 2000000, 3000000],
+  "steel_temperature_coefficient_per_k": 0.003,
+  "aluminium_sigma_s_m": 28000000,
+  "stator_slot_fraction": 0.46,
+  "rotor_bar_fraction": 0.42,
+  "rotor_skew_deg": 0,
+  "contact_locations_local_mm": [-3.55, 3.55]
+}

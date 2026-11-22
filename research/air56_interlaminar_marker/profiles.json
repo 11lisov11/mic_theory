@@ -1,0 +1,53 @@
+{
+  "AIR56_THEORY_LEGACY": {
+    "status": "historical_model_only",
+    "source": "config/env_research_air56_025kw.py",
+    "power_w": 250,
+    "frequency_hz": 50,
+    "pole_pairs": 2,
+    "speed_rpm": 1380,
+    "connection": "Y",
+    "line_voltage_v": 380,
+    "line_current_a": 0.7
+  },
+  "AIR56_PHYSICAL_CANDIDATE": {
+    "status": "operator_confirmed_model_designation_catalog_prior",
+    "source": "mic_practice bc7cc7f:docs/AIR56_NAMEPLATE_WEB_AUDIT_RU.md",
+    "catalog": "https://cdn-01.iek.ru/media/original/78c31060549010eaa9a1bb1f4f6d2d8cb3155062b138bfd13478f55521c38a47.pdf",
+    "catalog_revision_alternative": "https://lk.iek.ru/api/store/65291d80729fa60adbcea44e.pdf",
+    "power_w": 250,
+    "frequency_hz": 50,
+    "pole_pairs": 1,
+    "speed_rpm": 2720,
+    "connection": "Delta",
+    "line_voltage_v": 220,
+    "line_current_a": 1.24,
+    "electrical_prior": {
+      "source": "mic_practice committed artifacts/air56b2_nameplate_ensemble.json",
+      "sha256": "652ac6682ae7c8b2d2b3b44bcf2b760c5b2bb5344733b514f7107ea698968beb",
+      "sample_index": 197,
+      "motor": {
+        "Rs": 5.5112972465511945,
+        "Rr": 13.957524110369505,
+        "Ls_sigma": 0.00446631927516694,
+        "Lr_sigma": 0.005977046438595831,
+        "Lm": 0.48653021154409626,
+        "J": 0.0001661982768934255,
+        "B": 0.00017893711423630797,
+        "p": 1,
+        "I_n": 1.24,
+        "psi_sat": 0.0,
+        "sat_exp": 2.0,
+        "lm_min_scale": 0.45
+      }
+    }
+  },
+  "AIR56_IDENTIFIED": {
+    "status": "pending",
+    "required_evidence": [
+      "serial-specific nameplate photo",
+      "geometry measurements",
+      "electrical identification"
+    ]
+  }
+}

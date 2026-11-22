@@ -9,6 +9,7 @@ import math
 import numpy as np
 
 from control.active_belief_rotor_observer import ActiveBeliefRotorObserver
+from models.fem_rotor_marker_response import FemRotorMarkerResponse
 from models.two_level_inverter import TwoLevelInverterParams, alpha_beta_voltage, switch_events
 from safety.ai_pwm_gateway import (
     AIPwmRequest,
@@ -102,6 +103,12 @@ def legal_sequence(
 
 
 def _fisher_quadratic(observer: ActiveBeliefRotorObserver, dwell_s: float) -> tuple[float, float, float]:
+    if isinstance(observer.saliency, FemRotorMarkerResponse):
+        gradient = observer.saliency.response_derivative(observer.angles, dwell_s)
+        mass = np.sum(observer.weights * observer.gains[None, None, :]**2, axis=(1, 2))
+        quadratic = np.einsum("n,nai,naj,a->ij", mass, gradient, gradient,
+                              1 / observer.noise_std_axes_a**2) * observer.period_rad**2 / 12
+        return float(quadratic[0, 0]), float(quadratic[0, 1]), float(quadratic[1, 1])
     phase = observer.saliency.harmonic * observer.angles
     c, s = np.cos(phase), np.sin(phase)
     weighted_mass = np.sum(observer.weights * np.square(observer.gains)[None, None, :], axis=(1, 2))

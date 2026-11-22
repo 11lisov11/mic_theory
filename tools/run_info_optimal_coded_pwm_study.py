@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from config.env_air56_physical_candidate import ENV as AIR56_PHYSICAL_ENV, PROFILE as AIR56_PROFILE, HF_INDUCTANCE_H
 from config.env_research_air56_025kw import ENV as AIR56_ENV
 from config.env_research_al31_4_06kw import ENV as AL31_ENV
 from config.env_research_ao2_32_4_3kw import ENV as AO2_ENV
@@ -28,6 +29,7 @@ from control.student_t_noise_rotor_observer import StudentTNoiseRotorObserver
 from control.info_optimal_coded_pwm import CodedPwmConfig, choose_sequence, legal_sequence, make_sequence
 from control.sensorless_adaptive_foc_baseline import SensorlessAdaptiveFocBaselineController
 from models.induction_motor_alpha_beta import AlphaBetaInductionMotorModel, AlphaBetaMotorParams, AlphaBetaMotorState
+from models.fem_rotor_marker_response import FemRotorMarkerResponse
 from models.rotor_slot_saliency import SlotSaliency
 from models.two_level_inverter import TwoLevelInverterParams, alpha_beta_voltage, switch_events
 from safety.ai_pwm_gateway import AIPwmRequest, AIPwmSafetyGateway, GatewayLimits
@@ -84,7 +86,13 @@ def phase_zero_check(motor: str = "AIR56") -> dict:
             "max_electrical_output_delta": max_delta, "classification": "not represented" if max_delta == 0.0 else "angle dependent"}
 
 
-def _limits(params: AlphaBetaMotorParams, inverter: TwoLevelInverterParams) -> GatewayLimits:
+def _limits(params: AlphaBetaMotorParams, inverter: TwoLevelInverterParams, *,
+            physical_candidate: bool = False) -> GatewayLimits:
+    if physical_candidate:
+        return GatewayLimits(t_pwm_s=inverter.t_pwm_s, dead_time_s=inverter.dead_time_s,
+                             min_pulse_s=inverter.min_pulse_s, i_soft_a=params.i_limit,
+                             i_trip_a=1.25*params.i_limit, vdc_min_v=260.0, vdc_max_v=350.0,
+                             max_switch_events_per_window=48, switch_window_steps=8, confidence_min=0.35)
     return GatewayLimits(
         t_pwm_s=inverter.t_pwm_s, dead_time_s=inverter.dead_time_s, min_pulse_s=inverter.min_pulse_s,
         i_soft_a=max(2.5 * params.i_limit, 1.0), i_trip_a=max(3.2 * params.i_limit, 1.5),
@@ -132,10 +140,11 @@ def exogenous(case: Case) -> dict:
     }
 
 
-def _carrier(case: Case, params: AlphaBetaMotorParams, inverter: TwoLevelInverterParams, rated_rad_s: float) -> tuple[list[int], list[float]]:
+def _carrier(case: Case, params: AlphaBetaMotorParams, inverter: TwoLevelInverterParams, rated_rad_s: float, *,
+             physical_candidate: bool = False) -> tuple[list[int], list[float]]:
     # The existing MRAS-like controller requires flux state for its usual
     # feedback. Here it runs its no-feedback fallback; no true state enters.
-    controller = SensorlessAdaptiveFocBaselineController(params, inverter, AIPwmSafetyGateway(_limits(params, inverter)))
+    controller = SensorlessAdaptiveFocBaselineController(params, inverter, AIPwmSafetyGateway(_limits(params, inverter, physical_candidate=physical_candidate)))
     vectors: list[int] = []
     angle_estimates: list[float] = []
     theta_hat = 0.0
@@ -177,7 +186,9 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
               student_t_beta_scale_ratio: float = 2.0,
               speed_diffusion_override: float | None = None,
               command_slew_speed_diffusion: bool = False,
-              capture_posterior_trace: bool = False) -> dict:
+              capture_posterior_trace: bool = False,
+              marker_response: FemRotorMarkerResponse | None = None,
+              symmetric_channel: bool = False) -> dict:
     if method not in METHODS:
         raise ValueError(method)
     if observer_profile not in ("legacy", "dense", "robust"):
@@ -206,14 +217,20 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
         observer_profile != "robust" or speed_diffusion_override is not None
     ):
         raise ValueError("command-slew diffusion requires the robust profile without an override")
-    env = MOTORS[case.motor]
+    if marker_response is not None and (case.motor != "AIR56" or symmetric_channel):
+        raise ValueError("the FEM response belongs to the AIR56 physical candidate")
+    env = AIR56_PHYSICAL_ENV if marker_response is not None else MOTORS[case.motor]
     params = AlphaBetaMotorParams.from_motor_params(env.motor)
     inverter = TwoLevelInverterParams(Vdc=case.vdc, f_pwm=10_000.0, dead_time_s=1e-6,
                                       min_pulse_s=2e-6, r_on_ohm=0.08, v_drop_v=0.8)
     rated_rad_s = {"AIR56": 1380.0, "AL31": 1390.0, "AO2": 1430.0}[case.motor] * 2.0 * math.pi / 60.0
+    if marker_response is not None:
+        rated_rad_s = AIR56_PROFILE["speed_rpm"] * 2.0 * math.pi / 60.0
     stimulus = stimulus if stimulus is not None else exogenous(case)
-    carrier = carrier if carrier is not None else _carrier(case, params, inverter, rated_rad_s)
-    true_saliency = SlotSaliency(harmonic=28, strength=case.strength, differential_inductance_h=max(params.Lls, 0.045))
+    carrier = carrier if carrier is not None else _carrier(case, params, inverter, rated_rad_s, physical_candidate=marker_response is not None)
+    true_saliency = marker_response if marker_response is not None else SlotSaliency(
+        harmonic=28, strength=0.0 if symmetric_channel else case.strength,
+        differential_inductance_h=max(params.Lls, 0.045))
     speed_grid = _speed_hypotheses(case, rated_rad_s)
     observer_kwargs = {}
     if observer_profile in ("dense", "robust"):
@@ -251,7 +268,7 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
                                                "B3_info_bayes_risk": "bayes_risk"}.get(method, "separation"),
                          reuse_opposite_probe_score=method == "B3_info_bayes_risk")
     noise_scale = np.asarray((1.0, case.measurement_noise_beta_ratio))
-    gateway = AIPwmSafetyGateway(_limits(params, inverter))
+    gateway = AIPwmSafetyGateway(_limits(params, inverter, physical_candidate=marker_response is not None))
     speed_bias = 0.0 if case.scenario in ("standstill", "locked") else float(stimulus["speed_bias_fraction"]) * rated_rad_s
     initial_speed = _speed(case, 0, rated_rad_s) + speed_bias
     motor = AlphaBetaInductionMotorModel(params, AlphaBetaMotorState(theta_m=stimulus["theta0"], omega_m=initial_speed))
@@ -264,6 +281,7 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
     switching = 0
     estimated_switch_loss_j = 0.0
     probe_energy_j = 0.0
+    diagnostic_marker_energy_j = 0.0
     positive_electrical_input_j = 0.0
     flux_magnitudes: list[float] = []
     mean_voltage_deviations: list[float] = []
@@ -291,7 +309,7 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
             probe = fixed_probe_vector if fixed_probe_vector is not None else (1, 2, 3, 4, 5, 6)[k % 6]
             choice = make_sequence(base, probe, inverter, cfg)
             vprobe = alpha_beta_voltage(probe, inverter)
-            predicted = measured_i + cfg.probe_dwell_s * math.hypot(*vprobe) * (1.0 + case.strength) / true_saliency.differential_inductance_h
+            predicted = measured_i + cfg.probe_dwell_s * math.hypot(*vprobe) * (1.0 + true_saliency.strength) / true_saliency.differential_inductance_h
             if predicted >= gateway.limits.i_soft_a or not legal_sequence(choice, reference=reference, inverter=inverter,
                     gateway=gateway, measured_i_abs=measured_i, predicted_i_abs=predicted):
                 choice = reference
@@ -304,7 +322,7 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
             for candidate_vector in range(1, 7):
                 candidate = make_sequence(base, candidate_vector, inverter, cfg)
                 va, vb = alpha_beta_voltage(candidate_vector, inverter)
-                predicted = measured_i + cfg.probe_dwell_s * math.hypot(va, vb) * (1.0 + case.strength) / true_saliency.differential_inductance_h
+                predicted = measured_i + cfg.probe_dwell_s * math.hypot(va, vb) * (1.0 + true_saliency.strength) / true_saliency.differential_inductance_h
                 if predicted >= gateway.limits.i_soft_a or not legal_sequence(
                     candidate, reference=reference, inverter=inverter, gateway=gateway,
                     measured_i_abs=measured_i, predicted_i_abs=predicted,
@@ -312,6 +330,8 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
                     continue
                 da = factor * (-math.sin(phase) * va + math.cos(phase) * vb)
                 db = factor * (math.cos(phase) * va + math.sin(phase) * vb)
+                if marker_response is not None:
+                    da, db = marker_response.response_derivative(motor.state.theta_m, cfg.probe_dwell_s) @ (va, vb)
                 score = (da / case.noise_std_a) ** 2 + (db / (case.noise_std_a * case.measurement_noise_beta_ratio)) ** 2
                 if score > best:
                     best = score
@@ -381,6 +401,9 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
             currents.append(step.currents.stator_abs)
             flux_magnitudes.append(math.hypot(step.state.psi_s_alpha, step.state.psi_s_beta))
         if probe is not None:
+            if marker_response is not None:
+                diagnostic_marker_energy_j += cfg.probe_dwell_s * marker_response.marker_power_delta_w(
+                    base_theta, actual_probe_voltage)
             probe_energy_j += params.Rs * (cfg.probe_dwell_s / inverter.t_pwm_s) * sum(x * x for x in true_saliency.current_increment(base_theta, *probe_voltage, cfg.probe_dwell_s, gain=gain)) * inverter.t_pwm_s
         tic = perf_counter()
         if observer is not None:
@@ -454,6 +477,8 @@ def run_trial(case: Case, method: str, *, stimulus: dict | None = None,
     if isinstance(observer, PersistentNoiseRotorObserver):
         result["noise_mode_probabilities"] = dict(zip(observer.noise_ratios,
                                                        map(float, observer.noise_mode_probabilities())))
+    if marker_response is not None:
+        result["marker_terminal_probe_energy_delta_j"] = diagnostic_marker_energy_j
     if capture_posterior_trace:
         result["trace_angle_marginal"] = posterior_trace
         result["trace_predictive_surprise"] = predictive_surprise_trace
@@ -677,22 +702,34 @@ def _plots(summary: list[dict], out: Path) -> None:
 
 
 def run_suite(suite: str, out: Path, *, seeds: int | None = None, steps: int | None = None,
-              seed_offset: int = 0, observer_profile: str = "legacy") -> dict:
+              seed_offset: int = 0, observer_profile: str = "legacy",
+              marker_response: FemRotorMarkerResponse | None = None, symmetric_channel: bool = False) -> dict:
     if observer_profile not in ("legacy", "dense", "robust"):
         raise ValueError(observer_profile)
     out.mkdir(parents=True, exist_ok=True)
     cases = cases_for_suite(suite, seeds=seeds, steps=steps, seed_offset=seed_offset)
+    if marker_response is not None:
+        cases = list(dict.fromkeys(
+            replace(case, vdc=AIR56_PHYSICAL_ENV.inverter.Vdc, strength=marker_response.strength)
+            for case in cases if case.motor == "AIR56"))
+    if not cases:
+        raise ValueError("suite has no compatible AIR56 cases")
     methods = (("B2_fixed_probe", "B3_info_separation", "B3_lag1", "B3_lag2", "B3_lag4", "B3_lag8") if suite == "lag"
                else ("B2_fixed_probe", "B3_info_separation", "B3_info_renyi2") if suite == "long" else MAIN_METHODS)
+    if marker_response is not None and suite not in ("lag", "long"):
+        methods = (*methods, "B3_info_fisher")
     rows: list[dict] = []
     representative = None
     start = perf_counter()
     for index, case in enumerate(cases):
         stimulus = exogenous(case)
-        params = AlphaBetaMotorParams.from_motor_params(MOTORS[case.motor].motor)
+        trial_env = AIR56_PHYSICAL_ENV if marker_response is not None else MOTORS[case.motor]
+        params = AlphaBetaMotorParams.from_motor_params(trial_env.motor)
         inverter = TwoLevelInverterParams(Vdc=case.vdc)
         rated = {"AIR56": 1380.0, "AL31": 1390.0, "AO2": 1430.0}[case.motor] * 2.0 * math.pi / 60.0
-        carrier = _carrier(case, params, inverter, rated)
+        if marker_response is not None:
+            rated = AIR56_PROFILE["speed_rpm"] * 2.0 * math.pi / 60.0
+        carrier = _carrier(case, params, inverter, rated, physical_candidate=marker_response is not None)
         digest = hashlib.sha256(
             np.asarray([stimulus["theta0"], stimulus["bus_ripple"], stimulus["speed_bias_fraction"]]).tobytes()
             + np.asarray(stimulus["base_noise"]).tobytes()
@@ -701,7 +738,8 @@ def run_suite(suite: str, out: Path, *, seeds: int | None = None, steps: int | N
         ).hexdigest()[:16]
         for method in methods:
             result = run_trial(case, method, stimulus=stimulus, carrier=carrier,
-                               observer_profile=observer_profile)
+                               observer_profile=observer_profile, marker_response=marker_response,
+                               symmetric_channel=symmetric_channel)
             if representative is None and method == "B3_info_renyi2":
                 representative = {"case": asdict(case), "true_theta_rad": result["trace_theta_rad"],
                                   "estimate_modulo_rad": result["trace_estimate_rad"]}
@@ -732,6 +770,22 @@ def run_suite(suite: str, out: Path, *, seeds: int | None = None, steps: int | N
                   "HF saliency measurement is synthetic and not hardware-validated.",
                   "Credible sets are modulo slot pitch, not absolute-angle bounds."],
     }
+    if marker_response is not None:
+        payload["plant_extension"] = {
+            "type": "reduced FEM, single-frequency quadrature pulse approximation",
+            "profile": marker_response.profile, "frequency_hz": marker_response.frequency_hz,
+            "marker_present": marker_response.marker_present,
+            "data_sha256": marker_response.data_sha256,
+            "period_mechanical_deg": math.degrees(marker_response.period_rad),
+            "absolute_angle_observable": False,
+        }
+        payload["notes"][-2:] = [
+            "FEM correction changes sensing only. This experiment cannot measure torque or efficiency improvement from the marker.",
+            "Credible sets are modulo the declared FEM symmetry, not absolute-angle bounds.",
+        ]
+    elif symmetric_channel:
+        payload["plant_extension"]["type"] = "angle-independent HF control"
+        payload["notes"][-2] = "The HF control carries zero information on mechanical angle."
     with (out / "trials.csv").open("w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=list(rows[0]))
         writer.writeheader()
@@ -749,6 +803,10 @@ def main() -> None:
     parser.add_argument("--steps", type=int, default=None)
     parser.add_argument("--seed-offset", type=int, default=0)
     parser.add_argument("--observer-profile", choices=("legacy", "dense", "robust"), default="legacy")
+    parser.add_argument("--measurement-channel", choices=("symmetric", "synthetic", "fem"), default="synthetic")
+    parser.add_argument("--fem-response", type=Path)
+    parser.add_argument("--fem-frequency", type=float, default=2500.0)
+    parser.add_argument("--fem-control", action="store_true", help="use the FEM-profile control without bridges")
     parser.add_argument("--plot-only", action="store_true", help="regenerate figures from an existing summary.json")
     parser.add_argument("--out", type=Path, default=ROOT / "experiments" / "info_optimal_coded_pwm" / "quick")
     args = parser.parse_args()
@@ -759,8 +817,20 @@ def main() -> None:
         _plots(payload["summary"], args.out)
         print(f"plots updated: {args.out}")
         return
+    response = None
+    if args.measurement_channel == "fem":
+        if args.fem_response is None:
+            parser.error("--fem-response is required for the FEM measurement channel")
+        p = AlphaBetaMotorParams.from_motor_params(AIR56_PHYSICAL_ENV.motor)
+        response = FemRotorMarkerResponse.load(args.fem_response, args.fem_frequency, HF_INDUCTANCE_H,
+                                              stator_resistance_ohm=p.Rs, marker_present=not args.fem_control)
+        if response.profile != "AIR56_PHYSICAL_CANDIDATE":
+            parser.error("FEM data must belong to the AIR56 physical candidate")
+    elif args.fem_response is not None or args.fem_control:
+        parser.error("FEM options require --measurement-channel fem")
     payload = run_suite(args.suite, args.out, seeds=args.seeds, steps=args.steps,
-                        seed_offset=args.seed_offset, observer_profile=args.observer_profile)
+                        seed_offset=args.seed_offset, observer_profile=args.observer_profile,
+                        marker_response=response, symmetric_channel=args.measurement_channel == "symmetric")
     print(json.dumps({"suite": payload["suite"], "trial_count": payload["trial_count"],
                       "elapsed_s": payload["elapsed_s"], "verdict": payload["verdict_on_absolute_angle"]}, indent=2))
 

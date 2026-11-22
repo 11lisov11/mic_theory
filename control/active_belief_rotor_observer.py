@@ -11,13 +11,13 @@ import math
 
 import numpy as np
 
-from models.rotor_slot_saliency import SlotSaliency
+from models.fem_rotor_marker_response import FemRotorMarkerResponse, RotorPulseResponse
 
 
 class ActiveBeliefRotorObserver:
     def __init__(
         self,
-        saliency: SlotSaliency,
+        saliency: RotorPulseResponse,
         *,
         noise_std_a: float,
         noise_std_axes_a: tuple[float, float] | None = None,
@@ -105,6 +105,10 @@ class ActiveBeliefRotorObserver:
         return self._angle_diffuse(out)
 
     def predict_response(self, voltage: tuple[float, float], dwell_s: float) -> np.ndarray:
+        if isinstance(self.saliency, FemRotorMarkerResponse):
+            response = self.saliency.response_matrix(self.angles, dwell_s) @ voltage
+            prediction = response[:, None, None, :] * self.gains[None, None, :, None]
+            return np.broadcast_to(prediction, (*self.weights.shape, 2))
         va, vb = voltage
         phase = self.saliency.harmonic * self.angles
         c, s = np.cos(phase), np.sin(phase)

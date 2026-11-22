@@ -512,6 +512,7 @@ def _process_telemetry_step(
     cmd_rate_limit_a_per_s: float,
     id_min: float,
     id_max: float,
+    energy_observations: dict[str, float] | None = None,
 ) -> Air56BridgeStep:
     t_ms = int(telem.t_ms)
     state.last_telem_t_ms = t_ms
@@ -555,6 +556,10 @@ def _process_telemetry_step(
         load_torque_nm=load_est_nm,
         load_base_nm=load_base_nm,
     )
+    if energy_observations:
+        for key in ("p_in_norm", "p_el_filt", "p_shaft_norm", "eta_norm", "eta_episode_norm"):
+            if key in energy_observations:
+                obs[key] = _finite_float(energy_observations[key], key)
     action = _infer_action_scalar(active.agent, obs)
     gate_open = False
     if active.supervisor is not None:
