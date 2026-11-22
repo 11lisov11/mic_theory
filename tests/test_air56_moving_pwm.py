@@ -26,6 +26,9 @@ def test_moving_integrator_reduces_to_fixed_transient_when_operators_are_equal()
     assert result[2] > 0
     assert result[3] == 0
 
+    square = moving_run(*moving, .07, 2.7, 1.4, 0, 80, 8, 6, square_probe=True)
+    assert np.max(np.abs(square[0]-result[0])) > 1e-4
+
     reversal = moving_run(*moving, .07, .5, 1.4, 0, 80, 8, 80, .001, .002, -.5)
     times = (reversal[1][:, 0]+.5)*PWM_PERIOD_S
     _, displacement = ramp_profile(times, .001, .002, .5, -.5)

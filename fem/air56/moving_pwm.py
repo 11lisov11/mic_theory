@@ -141,7 +141,7 @@ def advance_modal(state, poles, decay, hold, drive, legs, rise, fall, base_volta
 @njit(cache=True)
 def moving_run(poles, decay, hold, forward, backward, drive, legs, flux, linkage,
                offset, angular_step, theta_initial, rpm, current_peak, probe_axis, periods, motion_block, capture_periods,
-               ramp_start_s=0., ramp_duration_s=0., terminal_rpm=0.):
+               ramp_start_s=0., ramp_duration_s=0., terminal_rpm=0., square_probe=False):
     """Propagate between remeshed FE operators without restarting cage history."""
     n, phase_nodes, dimension = poles.shape
     state_a, state_b = np.zeros(dimension), np.zeros(dimension)
@@ -186,7 +186,8 @@ def moving_run(poles, decay, hold, forward, backward, drive, legs, flux, linkage
         voltage = STATOR_OHM*load+((1j*TAU*LOAD_HZ*link+motional)*e).real
         command = voltage.copy()
         if probe_axis >= 0:
-            command[probe_axis] += np.cos(TAU*PROBE_HZ*t)
+            probe = np.cos(TAU*PROBE_HZ*t)
+            command[probe_axis] += (np.pi/4)*np.sign(probe) if square_probe else probe
         reference = AB_TO_PHASE @ load
         estimate = reference+AB_TO_PHASE @ current_increment
         compensated = AB_TO_PHASE @ command+BUS_V*DEAD_TICKS/TIMER_TICKS*np.sign(reference)
