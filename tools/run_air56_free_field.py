@@ -22,7 +22,7 @@ from tools.run_air56_polar_burst import H, R
 
 
 class Field:
-    def __init__(self, theta, level):
+    def __init__(self, theta, level, *, pole_half_width_deg=8., remanence_t=.4):
         g, design = article_profile()
         s = make_section(g, theta, level, replace(design, bar_width_modulation=0.6), int(level > 3))
         self.b = b = Basis(s.mesh, ElementTriP1(), intorder=2)
@@ -30,10 +30,10 @@ class Field:
         x, y = s.mesh.p[:, s.mesh.t].mean(axis=1)
         r = np.hypot(x, y)
         rel = (np.arctan2(y, x) - theta + np.pi / 2) % np.pi - np.pi / 2
-        cut = s.steel & (abs(rel) < np.deg2rad(8)) & (r > g.rotor_radius - 0.0005) & (r < g.rotor_radius)
+        cut = s.steel & (abs(rel) <= np.deg2rad(pole_half_width_deg)) & (r > g.rotor_radius - 0.0005) & (r < g.rotor_radius)
         s.steel &= ~cut
         self.steel = s.steel
-        m = cut[:, None] * 0.4 / MU0
+        m = cut[:, None] * remanence_t / MU0
         self.pm = magnetic_force.assemble(b, hx=-np.sin(theta) * m, hy=np.cos(theta) * m)[f]
         self.W = winding_rhs(g, s, b)[f]
         self.mass, self.g, self.total = cage_matrices(b, np.where(s.cage, g.aluminium_sigma, 0), f)
@@ -135,8 +135,8 @@ class Field:
 class BandField(Field):
     """Fourier Dirichlet-to-Neumann coupling across the circular air gap."""
 
-    def __init__(self, theta, level):
-        super().__init__(theta, level)
+    def __init__(self, theta, level, **pole_options):
+        super().__init__(theta, level, **pole_options)
         g, _ = article_profile()
         self.length = g.stack_length
         self.origin = theta
