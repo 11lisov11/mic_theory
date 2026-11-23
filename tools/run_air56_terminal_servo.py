@@ -4,6 +4,7 @@ The plant and observer retain separate electromagnetic and mechanical states.
 The actuator sees the observer state and terminal ADC only.
 """
 
+from contextlib import ExitStack
 from pathlib import Path
 import argparse, json, sys, time
 import numpy as np
@@ -438,6 +439,14 @@ def advance_observer(model, state, factors, voltage, duration, subdivisions, cur
 
 
 def run(args):
+    with ExitStack() as resources:
+        return _run(args, resources)
+
+
+def _run(args, resources):
+    workers = None
+    if args.parallel_dwells and (not args.identify_dwell or args.plant_substeps < 2):
+        raise ValueError("parallel dwells require identified and refined PWM dynamics")
     if args.plant_substeps < 1:
         raise ValueError("plant substeps must be positive")
     if args.observer_substeps < 1 or (
@@ -446,6 +455,12 @@ def run(args):
         raise ValueError(
             "refined post-capture observation requires switched control and its native capture bank"
         )
+    if args.track_dwell and (args.rotating or args.oracle_diagnostic):
+        raise ValueError("tracked response uses only terminal feedback in the direct position controller")
+    if args.track_dwell and not args.identify_dwell:
+        raise ValueError("dynamic response tracking requires blind startup identification")
+    if args.identify_dwell and (args.observer_substeps != 3 or not args.capture_bank or args.noise <= 0):
+        raise ValueError("dwell identification requires the native bank, noise and three central observer steps")
     if args.model_current_rms < 0:
         raise ValueError("model current RMS must be nonnegative")
     if args.fit_start_load and (not args.resolve or args.diagnostic_prior is not None):
@@ -493,6 +508,9 @@ def run(args):
     polarity_margin = np.nan
     reduced_cost = np.nan
     accepted = None
+    blend = None
+    capture_fit_rms = np.nan
+    inverse_steps = np.nan
     bank_fit = None
     if args.diagnostic_prior is None:
         reads = []
@@ -570,6 +588,31 @@ def run(args):
     else:
         initial = np.deg2rad(args.diagnostic_prior)
         startup_peak = 0.0
+    if args.identify_dwell:
+        from fem.air56.dwell_response import blended_step, fit_capture, weights
+        if args.parallel_dwells:
+            from fem.air56.parallel_dwell import DwellWorkers
+            workers = resources.enter_context(DwellWorkers(observer_level, args.level, args.modes, args.skew))
+        initial, captured_load, inverse_steps, capture_fit_rms = fit_capture(
+            obs, initial, bank_fit.load, pulses, stage_reads, args.noise, advance_plant, workers
+        )
+        blend = weights(inverse_steps)
+
+    def observe(state, factors, voltage, dt, history=None):
+        if args.track_dwell:
+            coordinate = np.clip(state[0], 0.0, 1.0)
+            # The interpolation is quadratic. A central difference is its exact slope.
+            slope = (weights(coordinate + 0.5) - weights(coordinate - 0.5))
+            predicted, updated, torque, derivative = blended_step(
+                obs, state[1:], factors[1:], voltage, dt, weights(coordinate),
+                advance_observer, advance_plant, history, slope, workers
+            )
+            updated += derivative[:, None] * factors[0]
+            return np.r_[coordinate, predicted], np.vstack((factors[0], updated)), torque
+        if blend is None:
+            return advance_observer(obs, state, factors, voltage, dt, args.observer_substeps, history)
+        return blended_step(obs, state, factors, voltage, dt, blend, advance_observer, advance_plant, history, workers=workers)
+
     est = obs.equilibrium(initial)
     d = 0.00005
     q = (obs.equilibrium(initial + d) - obs.equilibrium(initial - d)) / (2 * d)
@@ -585,15 +628,20 @@ def run(args):
             S[:, 0] = acquisition_derivative * 0.005
     elif args.diagnostic_prior is None:
         if bank_fit is not None:
-            est[-1] = bank_fit.load
+            est[-1] = bank_fit.load if blend is None else captured_load
+        if args.track_dwell:
+            est = np.r_[inverse_steps, est]
+            S = np.pad(S, ((1, 0), (0, 1)))
+            S[0, -1] = 0.07
         for v, h in pulses:
-            est, S, _ = advance_observer(obs, est, S, v, h, args.observer_substeps)
+            est, S, _ = observe(est, S, v, h)
     if args.torque_calibration:
         from tools.calibrate_air56_terminal_torque import TorqueCorrection
 
         obs.torque_calibration = TorqueCorrection(out, args.ring)
     capture_estimate = est[-3:].copy()
     log = []
+    coordinate_log = []
     speed_filtered = 0.0
     trim = 0.0
     position_i = 0.0
@@ -611,6 +659,7 @@ def run(args):
         if args.oracle_diagnostic:
             est = x.copy()
             est[-1] = load
+        control_state = est[1:] if args.track_dwell else est
         if args.rotating:
             phase = 2 * np.pi * (k + 0.5) / args.carrier_steps
             if k and k % args.carrier_steps == 0:
@@ -635,11 +684,11 @@ def run(args):
                 position_i + args.h * args.integral_gain * wrap(target - est[-3]), -0.03, 0.03
             )
             if args.shoot_pwm:
-                u, pred, tau, fac = predictive_pwm(obs, est, target, wref, k, args, position_i, bias)
+                u, pred, tau, fac = predictive_pwm(obs, control_state, target, wref, k, args, position_i, bias)
             else:
                 u, pred, tau, fac = command(
                     obs,
-                    est,
+                    control_state,
                     target,
                     wref,
                     k,
@@ -664,12 +713,15 @@ def run(args):
                     observer_start_current = predicted[-5:-3].copy()
                     measured_history = [start_current] if args.plant_substeps > 1 else None
                     predicted_history = [observer_start_current] if args.observer_substeps > 1 else None
-                    predicted, S, mt = advance_observer(
-                        obs, predicted, S, v, dt, args.observer_substeps, predicted_history
-                    )
-                    x, at = advance_plant(
-                        plant, x, v, dt, load, args.plant_substeps, angles_in_step, measured_history
-                    )
+                    plant_step = workers.reference(x, v, dt, load, args.plant_substeps) if workers else None
+                    predicted, S, mt = observe(predicted, S, v, dt, predicted_history)
+                    if plant_step is None:
+                        x, at = advance_plant(
+                            plant, x, v, dt, load, args.plant_substeps, angles_in_step, measured_history
+                        )
+                    else:
+                        x, at, angles, measured_history = plant_step.result()
+                        angles_in_step.extend(angles)
                     tau += dt * mt / args.h
                     actual += dt * at / args.h
                     last = carrier == args.pwm - 1 and j == len(stages) - 1
@@ -722,6 +774,8 @@ def run(args):
         S = compress(np.column_stack((S, new)), 7)
         est, S, nis = posterior(pred, S, adc, np.hypot(max(sd, 0.00005), args.model_current_rms))
         mean_nis += (1 - np.exp(-args.h / 0.05)) * (nis - mean_nis)
+        if args.track_dwell:
+            coordinate_log.append(est[0])
         log.append(
             [
                 t,
@@ -749,10 +803,13 @@ def run(args):
             np.savez_compressed(
                 temp,
                 trace=log,
+                dwell_coordinate=coordinate_log,
                 cold_angle=initial,
                 startup_peak_a=startup_peak,
                 startup_trace=startup_trace,
                 capture_estimate=capture_estimate,
+                identified_inverse_steps=inverse_steps,
+                start_fit_rms_a=capture_fit_rms,
                 native_capture_deg=bank_fit.angle if bank_fit is not None else np.nan,
                 capture_reduced_cost=reduced_cost,
                 capture_status="accepted" if args.check_capture or args.capture_bank else "unchecked",
@@ -815,6 +872,9 @@ if __name__ == "__main__":
     p.add_argument("--switched-start", action="store_true")
     p.add_argument("--start-volts", type=float, default=115.0)
     p.add_argument("--trapezoid", action="store_true")
+    p.add_argument("--track-dwell", action="store_true")
+    p.add_argument("--parallel-dwells", action="store_true")
+    p.add_argument("--identify-dwell", action="store_true")
     p.add_argument("--observer-substeps", type=int, default=1)
     p.add_argument(
         "--model-current-rms",
