@@ -121,3 +121,29 @@ def test_refined_impulse_gradient_includes_duration_and_endpoint_penalty():
     for axis, du in enumerate(0.001 * np.eye(2)):
         expected = (value(u + du)[0] - value(u - du)[0]) / 0.002
         assert gradient[axis] == pytest.approx(expected, abs=2e-6)
+
+
+def test_checkpoint_retries_when_previous_archive_has_a_windows_reader(tmp_path, monkeypatch):
+    from pathlib import Path
+    from tools.run_air56_terminal_servo import publish_checkpoint
+
+    record = tmp_path / "trace.npz"
+    temp = tmp_path / "trace.partial.npz"
+    np.savez(record, period=40)
+    np.savez(temp, period=80)
+    replace = Path.replace
+    attempts = []
+
+    def replace_after_reader_closes(source, destination):
+        attempts.append(destination)
+        if len(attempts) == 1:
+            with np.load(destination) as old:
+                assert old["period"] == 40
+            raise PermissionError("reader still holds the previous file")
+        return replace(source, destination)
+
+    monkeypatch.setattr(Path, "replace", replace_after_reader_closes)
+    publish_checkpoint(temp, record)
+    assert attempts == [record, record]
+    with np.load(record) as updated:
+        assert updated["period"] == 80

@@ -47,15 +47,30 @@ def run(case, skew, out, seconds):
         model_current_rms=0.002,
         load_process=0.0004,
         identify_dwell=case
-        in ("identified", "tracked", "quiet", "parallel", "holdout6_", "refined6_", "impulse"),
-        track_dwell=case in ("tracked", "quiet", "parallel", "holdout6_", "refined6_", "impulse"),
+        in (
+            "identified",
+            "tracked",
+            "quiet",
+            "parallel",
+            "holdout6_",
+            "refined6_",
+            "torque6_",
+            "torque4_",
+            "impulse",
+        ),
+        track_dwell=case
+        in ("tracked", "quiet", "parallel", "holdout6_", "refined6_", "torque6_", "torque4_", "impulse"),
     )
-    if case in ("quiet", "parallel", "holdout6_", "refined6_", "impulse"):
+    if case in ("quiet", "parallel", "holdout6_", "refined6_", "torque6_", "torque4_", "impulse"):
         settings.update(probe_v=0.6, stiffness=0.70, seed=8271)
     if case in ("parallel", "impulse"):
         settings.update(parallel_dwells=True, seed=19013, impulse_control=case == "impulse")
     if case == "refined6_":
         settings.update(parallel_dwells=True, plant_substeps=6, seed=10037)
+    if case == "torque6_":
+        settings.update(parallel_dwells=True, plant_substeps=6, seed=10037, torque_rms=0.0015)
+    if case == "torque4_":
+        settings.update(parallel_dwells=True, plant_substeps=4, seed=23111, torque_rms=0.0015)
     if case == "holdout6_":
         settings.update(plant_substeps=6, seed=10037)
     target = out / f"{case}{skew}.npz"
@@ -118,6 +133,8 @@ def metrics(path):
             noise_ma=opts["noise"] * 1000,
             seed=opts["seed"],
             time_s=t[-1],
+            requested_s=opts["seconds"],
+            reversal_assessed=t[-1] >= 12.5 - 1e-9,
             response_from_start=archive["identified_inverse_steps"].item(),
             response_at_end=q[-1] if len(q) else np.nan,
             start_current_rms_ma=archive["start_fit_rms_a"].item() * 1000,
@@ -130,12 +147,32 @@ def metrics(path):
             early_mean_torque_error_rms_mnm=rms(early[:, 9] - opts["load"]) * 1000,
             early_load_mean_nm=np.mean(early[:, 8]),
         )
+        if t[-1] >= 1.0:
+            initial_hold = x[(t >= 0.55) & (t <= 1.0)]
+            row["initial_hold_to_motion_max_deg"] = max_hold(initial_hold)
+        if t[-1] >= 2.56:
+            motion = x[(t >= 1.30) & (t <= 2.56)]
+            row.update(
+                first_motion_max_track_deg=max_hold(motion),
+                first_motion_max_read_deg=np.rad2deg(np.max(np.abs(motion[:, 2] - motion[:, 1]))),
+                first_motion_torque_rms_mnm=1000 * rms(motion[:, 10] - motion[:, 9]),
+            )
+        if t[-1] >= 5.18:
+            with_forward = (t >= 1.65) & (t <= 5.18 + 1e-9)
+            forward_fit = np.polyfit(t[with_forward], x[with_forward, 1:3], 1)[0] * 30 / np.pi
+            row.update(
+                forward_rpm=forward_fit[0],
+                forward_read_rpm=forward_fit[1],
+                forward_within_tolerance=bool(np.all(np.abs(forward_fit - 0.1) <= 0.02)),
+            )
         m = score(x, seconds=12.5)
         if m["complete"]:
             held = x[t >= 9.95]
             row.update(
                 m,
                 final_hold_max_deg=max_hold(held),
+                from_stop_max_deg=max_hold(x[t >= 9.65]),
+                after_settling_peak_deg=max_hold(x[t >= 0.55]),
                 final_hold_end_speed_p95_rpm=np.percentile(np.abs(held[:, 4]) * 30 / np.pi, 95),
                 forward_end_speed_p95_error_rpm=np.percentile(
                     np.abs(x[(t >= 1.65) & (t <= 5.18), 4] * 30 / np.pi - 0.1), 95
@@ -147,14 +184,25 @@ def metrics(path):
                 final_torque_rms_mnm=rms(held[:, 9] - held[:, 10]) * 1000,
             )
             row["strict_pass"] = (
-                bool(m["passes"]) and row["final_hold_max_deg"] <= 1.0 and row["early_hold_max_deg"] <= 1.0
+                bool(m["passes"])
+                and row["initial_hold_to_motion_max_deg"] <= 1.0
+                and row["from_stop_max_deg"] <= 1.0
             )
         return row
 
 
 def export_trajectories(out):
     """Portable per-carrier evidence; full-precision solver archives are kept separately."""
-    names = ("parallel0", "parallel1", "refined6_0", "refined6_1")
+    names = (
+        "parallel0",
+        "parallel1",
+        "refined6_0",
+        "refined6_1",
+        "torque6_0",
+        "torque6_1",
+        "torque4_0",
+        "torque4_1",
+    )
     with (out / "trajectories.csv").open("w", newline="", encoding="utf-8") as stream:
         writer = csv.writer(stream)
         writer.writerow(
@@ -176,6 +224,9 @@ def export_trajectories(out):
                 "u_beta_v",
                 "adc_alpha_compensated_a",
                 "adc_beta_compensated_a",
+                "filtered_normalized_innovation",
+                "load_process_open_fraction",
+                "response_coordinate",
             )
         )
         for name in names:
@@ -184,6 +235,7 @@ def export_trajectories(out):
                 continue
             with np.load(archive) as data:
                 x = data["trace"]
+                coordinate = data["dwell_coordinate"]
             if len(x) != 3125 or abs(x[-1, 0] - 12.5) > 1e-9:
                 continue
             fields = np.column_stack(
@@ -192,11 +244,44 @@ def export_trajectories(out):
                     np.rad2deg(x[:, [3, 1, 2]]),
                     x[:, [6, 4]] * 30 / np.pi,
                     np.rad2deg(x[:, 17:19]),
-                    x[:, [9, 10, 7, 8, 11, 12, 13, 14]],
+                    x[:, [9, 10, 7, 8, 11, 12, 13, 14, 15, 16]],
+                    coordinate,
                 )
             )
             for row in fields:
                 writer.writerow([name, *(format(v, ".10g") for v in row)])
+
+
+def plot_six_step_comparison(out, plt):
+    traces = []
+    for name in ("refined6_1", "torque6_1"):
+        path = out / (name + ".npz")
+        if not path.is_file():
+            return
+        with np.load(path) as d:
+            x = d["trace"]
+        if not len(x) or x[-1, 0] < 2.56:
+            return
+        traces.append(x[(x[:, 0] >= 0.8) & (x[:, 0] <= 2.56)])
+    fig, axes = plt.subplots(2, 2, figsize=(10, 5), sharex=True, sharey="row", constrained_layout=True)
+    for j, x in enumerate(traces):
+        t = x[:, 0]
+        axes[0, j].axhspan(-1, 1, color="green", alpha=0.11)
+        axes[0, j].plot(t, np.rad2deg(x[:, 1] - x[:, 3]), label="Вал FEM")
+        axes[0, j].plot(t, np.rad2deg(x[:, 2] - x[:, 3]), label="По токам", lw=0.9)
+        axes[1, j].plot(t, 1000 * x[:, 9], label="Момент поля", lw=0.9)
+        axes[1, j].plot(t, 1000 * x[:, 10], label="Прогноз", lw=0.8)
+        axes[1, j].axhline(20, color="k", ls="--", lw=0.7, label="Нагрузка")
+        axes[0, j].set_title(("Исходная ковариация", "Неопределённость момента 1,5 мН·м")[j])
+        axes[1, j].set_xlabel("Время после подхвата, с")
+    axes[0, 0].set_ylabel("Отклонение от задания, °")
+    axes[1, 0].set_ylabel("Средний момент за ШИМ, мН·м")
+    for a in axes.flat:
+        a.grid(alpha=0.2)
+    axes[0, 0].legend()
+    axes[1, 0].legend()
+    fig.savefig(out / "six_step_current_feedback.png", dpi=150)
+    plt.close(fig)
 
 
 def report(out, primary=None):
@@ -281,8 +366,14 @@ def report(out, primary=None):
             axes[row, 0].set_ylabel(label)
         for ax in axes.flat:
             ax.grid(alpha=0.2)
-        fig.savefig(out / ("closed_loop_6.png" if primary == "refined6_" else "closed_loop.png"), dpi=160)
+        plot = {
+            "refined6_": "closed_loop_6.png",
+            "torque6_": "closed_loop_torque_floor.png",
+            "torque4_": "closed_loop_torque4.png",
+        }.get(primary, "closed_loop.png")
+        fig.savefig(out / plot, dpi=160)
         plt.close(fig)
+        plot_six_step_comparison(out, plt)
         export_trajectories(out)
         files = [
             *out.glob("*.npz"),
@@ -290,11 +381,14 @@ def report(out, primary=None):
             *out.glob("*.png"),
             *(out / "replay").glob("*.csv"),
         ]
-        hashes = {
-            p.relative_to(out).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
-            for p in files
-            if not p.name.endswith(".partial.npz")
-        }
+        hashes = {}
+        for path in files:
+            if path.name.endswith(".partial.npz"):
+                continue
+            content = path.read_bytes()
+            if path.suffix == ".csv":
+                content = content.replace(b"\r\n", b"\n")
+            hashes[path.relative_to(out).as_posix()] = hashlib.sha256(content).hexdigest()
         (out / "manifest.json").write_text(json.dumps(hashes, indent=2))
 
 
@@ -312,12 +406,16 @@ if __name__ == "__main__":
             "parallel",
             "holdout6_",
             "refined6_",
+            "torque6_",
+            "torque4_",
             "impulse",
         ],
     )
     parser.add_argument("--skew", type=int, choices=[0, 1], default=0)
     parser.add_argument("--seconds", type=float)
-    parser.add_argument("--primary", choices=["tracked", "quiet", "parallel", "refined6_"])
+    parser.add_argument(
+        "--primary", choices=["tracked", "quiet", "parallel", "refined6_", "torque6_", "torque4_"]
+    )
     args = parser.parse_args()
     if args.case:
         run(args.case, args.skew, args.out.resolve(), args.seconds)

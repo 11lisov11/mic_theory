@@ -378,6 +378,18 @@ def cold_voltage(k):
     return 82 * (-1) ** (k % 2 + p // 3) * np.array([np.cos(a), np.sin(a)])
 
 
+def publish_checkpoint(temp, record):
+    # On Windows a reader can briefly hold the previous archive without share-delete.
+    for attempt in range(8):
+        try:
+            temp.replace(record)
+            return
+        except PermissionError:
+            if attempt == 7:
+                raise
+            time.sleep(0.02 * 2**attempt)
+
+
 def sample_terminal(
     start,
     end,
@@ -463,6 +475,8 @@ def _run(args, resources):
         raise ValueError("dynamic response tracking requires blind startup identification")
     if args.identify_dwell and (args.observer_substeps != 3 or not args.capture_bank or args.noise <= 0):
         raise ValueError("dwell identification requires the native bank, noise and three central observer steps")
+    if args.torque_rms < 0:
+        raise ValueError("period torque uncertainty must be nonnegative")
     if args.model_current_rms < 0:
         raise ValueError("model current RMS must be nonnegative")
     if args.fit_start_load and (not args.resolve or args.diagnostic_prior is not None):
@@ -782,7 +796,7 @@ def _run(args, resources):
             measured_history,
             predicted_history,
         )
-        new = np.zeros((len(est), 2))
+        new = np.zeros((len(est), 3 if args.torque_rms else 2))
         if args.adaptive:
             quiet_time = 0.0 if mean_nis > 5.0 else quiet_time + args.h
             opening = np.exp(-max(quiet_time - 0.30, 0) / 0.12)
@@ -790,6 +804,12 @@ def _run(args, resources):
             opening = 1.0
         new[-1, 0] = (0.000010 + (args.load_process - 0.000010) * opening) * np.sqrt(args.h)
         new[-2, 1] = (0.0001 + 0.0029 * opening) * np.sqrt(args.h)
+        if args.torque_rms:
+            # A period-mean torque error changes speed and position coherently.
+            # Keep this floor when the external load is constant and its filter closes.
+            delta_speed = args.h * args.torque_rms / J
+            new[-2, 2] = delta_speed
+            new[-3, 2] = 0.5 * args.h * delta_speed
         S = compress(np.column_stack((S, new)), 7)
         est, S, nis = posterior(pred, S, adc, np.hypot(max(sd, 0.00005), args.model_current_rms))
         mean_nis += (1 - np.exp(-args.h / 0.05)) * (nis - mean_nis)
@@ -837,7 +857,7 @@ def _run(args, resources):
                 settings=json.dumps(vars(args), default=str),
                 elapsed_s=time.perf_counter() - start,
             )
-            temp.replace(record)
+            publish_checkpoint(temp, record)
             print(k, np.round(np.rad2deg([x[-3], est[-3], target]), 3), round(est[-1], 4), flush=True)
 
 
@@ -892,6 +912,7 @@ if __name__ == "__main__":
     p.add_argument("--start-volts", type=float, default=115.0)
     p.add_argument("--trapezoid", action="store_true")
     p.add_argument("--track-dwell", action="store_true")
+    p.add_argument("--torque-rms", type=float, default=0., help="RMS uncertainty of each period mean torque, Nm")
     p.add_argument("--impulse-control", action="store_true")
     p.add_argument("--parallel-dwells", action="store_true")
     p.add_argument("--identify-dwell", action="store_true")
