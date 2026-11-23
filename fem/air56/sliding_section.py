@@ -178,9 +178,14 @@ def winding_rhs(g, section, basis, current_source="belts"):
     return np.column_stack([current.assemble(basis, source=u) for u in density])
 
 
-def solve(g, frequency, section, stator_resistance, *, transfer=False, current_source="belts", element_mu=None):
+def solve(g, frequency, section, stator_resistance, *, transfer=False, current_source="belts", element_mu=None, element_sigma=None):
     basis = Basis(section.mesh, ElementTriP2(), intorder=4)
     sigma = np.where(section.cage, g.aluminium_sigma, 0.0)
+    if element_sigma is not None:
+        sigma = np.asarray(element_sigma)
+        if (sigma.shape != section.cage.shape or not np.isfinite(sigma).all() or np.any(sigma < 0)
+                or np.any(sigma[~section.cage] != 0) or not np.any(sigma)):
+            raise ValueError("invalid cage conductivity")
     mu = np.where(section.steel, g.mu_r, 1.0) if element_mu is None else np.asarray(element_mu)
     if mu.shape != section.steel.shape or not np.isfinite(mu).all() or np.any(mu <= 0):
         raise ValueError("invalid element permeability")

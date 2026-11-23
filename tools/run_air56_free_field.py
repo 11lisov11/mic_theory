@@ -22,15 +22,18 @@ from tools.run_air56_polar_burst import H, R
 
 
 class Field:
-    def __init__(self, theta, level, *, pole_half_width_deg=8., remanence_t=.4):
+    def __init__(self, theta, level, *, pole_half_width_deg=8., remanence_t=.4, stock=False):
         g, design = article_profile()
-        s = make_section(g, theta, level, replace(design, bar_width_modulation=0.6), int(level > 3))
+        design = design if stock else replace(design, bar_width_modulation=0.6)
+        s = make_section(g, theta, level, design, int(level > 3))
         self.b = b = Basis(s.mesh, ElementTriP1(), intorder=2)
         self.free = f = b.complement_dofs(b.get_dofs())
         x, y = s.mesh.p[:, s.mesh.t].mean(axis=1)
         r = np.hypot(x, y)
         rel = (np.arctan2(y, x) - theta + np.pi / 2) % np.pi - np.pi / 2
         cut = s.steel & (abs(rel) <= np.deg2rad(pole_half_width_deg)) & (r > g.rotor_radius - 0.0005) & (r < g.rotor_radius)
+        if stock:
+            cut[:] = False
         s.steel &= ~cut
         self.steel = s.steel
         m = cut[:, None] * remanence_t / MU0

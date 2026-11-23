@@ -9,7 +9,7 @@ from pathlib import Path
 import argparse, json, sys, time
 import numpy as np
 from scipy.sparse import bmat, csc_matrix
-from scipy.sparse.linalg import splu
+from scipy.sparse.linalg import spilu, splu
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -22,14 +22,22 @@ from tools.run_air56_field_observer import J, DRAG
 
 
 class Machine:
-    def __init__(self, level, modes, skew, ring=False):
+    def __init__(self, level, modes, skew, ring=False, *, stock=False, axial_slices=None):
         self.ring = ring
         poles = dict(pole_half_width_deg=90.0, remanence_t=0.8) if ring else {}
+        if stock:
+            if modes or ring:
+                raise ValueError("Stock geometry requires the moving band and a plain rotor")
+            poles = {"stock": True}
+        self.offsets = SkewBand.offsets if skew else [0.0]
+        if axial_slices is not None:
+            if not stock or not skew or axial_slices < 1:
+                raise ValueError("Axial refinement requires a skewed stock rotor")
+            self.offsets = (2*np.pi/18)*((np.arange(axial_slices)+.5)/axial_slices-.5)
         self.slices = [
             (TraceField(level, modes, **poles) if modes else BandField(0.0, level, **poles))
-            for _ in range(3 if skew else 1)
+            for _ in self.offsets
         ]
-        self.offsets = SkewBand.offsets if skew else [0.0]
         self.n = len(self.slices[0].free)
         self.count = len(self.slices)
         self.size = (self.n + 1) * self.count + 2
@@ -37,6 +45,7 @@ class Machine:
         self.torque_calibration = None
         self.current_angle = None
         self.factor_cache = {}
+        self.compact_lu = False
         self.volume = P1Volume(self.slices[0])
 
     def phase(self, angle):
@@ -58,13 +67,13 @@ class Machine:
     def electromagnetic(self, x):
         return np.concatenate((x[: self.size - 2], x[-5:-3]), axis=0)
 
-    def evaluate(self, s, old, u, h, linearize):
+    def evaluate(self, s, old, u, h, linearize, delta=None):
         residual = []
         circuit = R * s[-2:] - u
         factors = []
         for j, (f, z) in enumerate(zip(self.slices, s[:-2].reshape(self.count, -1))):
             a = z[:-1]
-            rate = (a - old[j]) / h
+            rate = (a - old[j] if delta is None else self.parts(delta)[j, :-1, 0]) / h
             force, t = self.volume.field(a)
             force += f.extra @ a - f.pm
             residual.append(
@@ -79,7 +88,13 @@ class Machine:
                     ],
                     format="csc",
                 )
-                lu = splu(k, permc_spec="MMD_AT_PLUS_A")
+                if self.compact_lu:
+                    # Zero dropping and unrestricted fill for the Newton correction.
+                    # ILU's initial storage estimate avoids SuperLU's 30x allocation per slice.
+                    lu = spilu(k, permc_spec="MMD_AT_PLUS_A", drop_tol=0, fill_factor=4,
+                               drop_rule="basic", diag_pivot_thresh=1.0)
+                else:
+                    lu = splu(k, permc_spec="MMD_AT_PLUS_A")
                 coupling = np.vstack([f.W, np.zeros((1, 2))])
                 factors.append((lu, lu.solve(coupling)))
         return np.r_[np.concatenate(residual), circuit], factors
@@ -98,36 +113,42 @@ class Machine:
         di = np.linalg.solve(k, right)
         return np.vstack([*(y + c @ di for y, (_, c) in zip(pieces, factors)), di])
 
-    def step(self, x, u, h, load=None, tangent=False, guess=None):
+    def step(self, x, u, h, load=None, tangent=False, guess=None, incremental=False):
         theta, w, dist = x[-3:]
         self.phase(theta)
         old = self.parts(x)[:, :-1, 0]
         s = self.electromagnetic(x) if guess is None else guess.copy()
+        # At very short PWM dwells the circuit equation can resolve a field increment
+        # much smaller than the old vector potential. Carry that increment independently.
+        base = self.electromagnetic(x) if incremental else None
+        delta = s - base if incremental else None
         bucket = round(np.log2(h) * 4)
         if bucket not in self.factor_cache and len(self.factor_cache) > 12:
             self.factor_cache.pop(next(iter(self.factor_cache)))
         cached = self.factor_cache.get(bucket)
         factors = cached[1] if cached and abs(wrap(theta - cached[0])) < 0.04 else None
-        res = self.evaluate(s, old, u, h, False)[0]
+        res = self.evaluate(s, old, u, h, False, delta)[0]
         exact = False
         for _ in range(50):
             norm = np.linalg.norm(res)
             if np.max(abs(res)) < 1e-6:
                 if tangent:
-                    _, factors = self.evaluate(s, old, u, h, True)
+                    _, factors = self.evaluate(s, old, u, h, True, delta)
                     self.factor_cache[bucket] = (theta, factors)
                 break
             if factors is None:
-                _, factors = self.evaluate(s, old, u, h, True)
+                _, factors = self.evaluate(s, old, u, h, True, delta)
                 self.factor_cache[bucket] = (theta, factors)
                 exact = True
             direction = self.solve(factors, -res, h)[:, 0]
             for scale in 2.0 ** -np.arange(13 if exact else 3):
-                test = s + scale * direction
-                next_res = self.evaluate(test, old, u, h, False)[0]
+                trial_delta = delta + scale * direction if incremental else None
+                test = base + trial_delta if incremental else s + scale * direction
+                next_res = self.evaluate(test, old, u, h, False, trial_delta)[0]
                 progress = np.linalg.norm(next_res) / norm
                 if progress < 1.0:
                     s = test
+                    delta = trial_delta
                     res = next_res
                     if progress > 0.55:
                         factors = None
