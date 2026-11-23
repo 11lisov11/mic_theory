@@ -1,0 +1,30 @@
+{
+  "operation": "literature update authorized by user",
+  "russian_references": 7,
+  "english_references": 7,
+  "first_citation_order": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "scientific_body_unchanged": true,
+  "table_values_unchanged": true,
+  "figure_media_unchanged": true,
+  "section_styles_footer_preserved": true,
+  "pages_rendered_and_visually_reviewed": 8,
+  "visual_status": "clean; complete figure-caption pairs and unsplit table; normal final-page remainder",
+  "metadata_evidence": {
+    "conference_3_4": "user-provided eLibrary screenshot codex-clipboard-8e5b5f59-2cc7-4c3d-a485-62cfc34b9cd1.png",
+    "international_5": "https://journals.tubitak.gov.tr/elektrik/vol18/iss5/9/",
+    "international_6": "https://journals.tubitak.gov.tr/elektrik/vol22/iss3/7/",
+    "international_7": "https://pure.au.dk/portal/en/publications/analysis-and-comparison-of-nonlinear-kalman-filters-for-sensorles/"
+  },
+  "outputs": [
+    "C:\\Study\\Статьи и конференции\\ТЭБТРАНС2026\\Марикин_Оценка_токовых_ТЭБТРАНС_2026_ВАК.docx",
+    "C:\\Study\\Статьи и конференции\\ТЭБТРАНС2026\\Марикин_Оценка_токовых_ТЭБТРАНС_2026.docx"
+  ]
+}

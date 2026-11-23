@@ -1,0 +1,85 @@
+{
+  "output": "C:\\mic_practice\\output\\tebtrans_2026\\Марикин_Повышение_точности_ТЭБТРАНС_2026.docx",
+  "output_sha256": "16d6f5e72a916226e8043f604e694f4eeb3e716e997ff5d0730dbdf1691f6d14",
+  "raw_sha256": "92f344e804b47553f8aa9cfe741c2b31501c4fabc36189144692a9c7f7041d5a",
+  "prespecified_primary_comparison_preserved": true,
+  "mean_values_recomputed": 16,
+  "graph_mean_values_verified": 8,
+  "trace_series_verified": 6,
+  "paired_seed_clusters": 20,
+  "effects_percent": {
+    "speed_error_reduction": [
+      66.17695533951806,
+      67.5238006610047
+    ],
+    "torque_std_reduction": [
+      34.34476908046121,
+      31.83349491802222
+    ],
+    "mean_individual_current_maximum_change": [
+      -0.14656780465950314,
+      0.843253389676879
+    ],
+    "stator_copper_energy_change": [
+      2.989003600753337,
+      2.629490812147073
+    ]
+  },
+  "same_covariance_supplementary_check_supports_statement": true,
+  "mechanism_evidence": {
+    "parameter_drift": {
+      "fixed_reference": {
+        "estimation_mae_rad_s": 3.6323138738173957,
+        "tracking_mae_rad_s": 3.720798049256771,
+        "peak_current_a": 1.2839131247694089
+      },
+      "joint_only": {
+        "estimation_mae_rad_s": 0.6302785728138086,
+        "tracking_mae_rad_s": 0.7131460976740581,
+        "peak_current_a": 1.7039430097145365
+      },
+      "confidence_feedback": {
+        "estimation_mae_rad_s": 1.243506773629108,
+        "tracking_mae_rad_s": 1.2584871859264584,
+        "peak_current_a": 1.2820313214886991
+      }
+    },
+    "composite": {
+      "fixed_reference": {
+        "estimation_mae_rad_s": 3.6724080496309766,
+        "tracking_mae_rad_s": 3.7686041702075395,
+        "peak_current_a": 1.2798831609822505
+      },
+      "joint_only": {
+        "estimation_mae_rad_s": 0.6685857967761774,
+        "tracking_mae_rad_s": 0.7717380496797175,
+        "peak_current_a": 1.771605739267721
+      },
+      "confidence_feedback": {
+        "estimation_mae_rad_s": 1.2101131048458442,
+        "tracking_mae_rad_s": 1.2238994026142906,
+        "peak_current_a": 1.290675819121137
+      }
+    }
+  },
+  "original_simulation_sources_match": true,
+  "numeric_tokens_before": 282,
+  "numeric_tokens_after": 72,
+  "tables_before": 3,
+  "tables_after": 0,
+  "figures": 3,
+  "numbered_conclusions": 3,
+  "bibliography_preserved": true,
+  "source_format_preserved": true,
+  "final_pages_visually_reviewed": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "new_simulations": false
+}

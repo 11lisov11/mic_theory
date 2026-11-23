@@ -1,0 +1,138 @@
+{
+  "reference": "C:\\Study\\Статьи и конференции\\ВАК\\Марикин А.Н. и др. Исследование_прямого_нейроуправления_асинхронным_двигателем_с_обучением_исправленое.docx",
+  "sha256": "dd69d23f3616a4524ba2332095fc7d90680ef49f543de348cc357bf24296dcc5",
+  "source_render_pages": 10,
+  "section_xml": "<w:sectPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" xmlns:wpc=\"http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas\" xmlns:cx=\"http://schemas.microsoft.com/office/drawing/2014/chartex\" xmlns:cx1=\"http://schemas.microsoft.com/office/drawing/2015/9/8/chartex\" xmlns:cx2=\"http://schemas.microsoft.com/office/drawing/2015/10/21/chartex\" xmlns:cx3=\"http://schemas.microsoft.com/office/drawing/2016/5/9/chartex\" xmlns:cx4=\"http://schemas.microsoft.com/office/drawing/2016/5/10/chartex\" xmlns:cx5=\"http://schemas.microsoft.com/office/drawing/2016/5/11/chartex\" xmlns:cx6=\"http://schemas.microsoft.com/office/drawing/2016/5/12/chartex\" xmlns:cx7=\"http://schemas.microsoft.com/office/drawing/2016/5/13/chartex\" xmlns:cx8=\"http://schemas.microsoft.com/office/drawing/2016/5/14/chartex\" xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" xmlns:aink=\"http://schemas.microsoft.com/office/drawing/2016/ink\" xmlns:am3d=\"http://schemas.microsoft.com/office/drawing/2017/model3d\" xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:oel=\"http://schemas.microsoft.com/office/2019/extlst\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xmlns:m=\"http://schemas.openxmlformats.org/officeDocument/2006/math\" xmlns:v=\"urn:schemas-microsoft-com:vml\" xmlns:wp14=\"http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing\" xmlns:wp=\"http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing\" xmlns:w10=\"urn:schemas-microsoft-com:office:word\" xmlns:w14=\"http://schemas.microsoft.com/office/word/2010/wordml\" xmlns:w15=\"http://schemas.microsoft.com/office/word/2012/wordml\" xmlns:w16cex=\"http://schemas.microsoft.com/office/word/2018/wordml/cex\" xmlns:w16cid=\"http://schemas.microsoft.com/office/word/2016/wordml/cid\" xmlns:w16=\"http://schemas.microsoft.com/office/word/2018/wordml\" xmlns:w16sdtdh=\"http://schemas.microsoft.com/office/word/2020/wordml/sdtdatahash\" xmlns:w16se=\"http://schemas.microsoft.com/office/word/2015/wordml/symex\" xmlns:wpg=\"http://schemas.microsoft.com/office/word/2010/wordprocessingGroup\" xmlns:wpi=\"http://schemas.microsoft.com/office/word/2010/wordprocessingInk\" xmlns:wne=\"http://schemas.microsoft.com/office/word/2006/wordml\" xmlns:wps=\"http://schemas.microsoft.com/office/word/2010/wordprocessingShape\" w:rsidR=\"00041A37\" w:rsidRPr=\"00603E5A\" w:rsidSect=\"00034616\">\n  <w:footerReference w:type=\"default\" r:id=\"rId12\"/>\n  <w:pgSz w:w=\"11906\" w:h=\"16838\"/>\n  <w:pgMar w:top=\"714\" w:right=\"1440\" w:bottom=\"538\" w:left=\"1418\" w:header=\"720\" w:footer=\"720\" w:gutter=\"0\"/>\n  <w:cols w:space=\"720\"/>\n  <w:docGrid w:linePitch=\"360\"/>\n</w:sectPr>\n",
+  "roles": {
+    "udc": {
+      "paragraph": 0,
+      "pPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" xmlns:w14=\"http://schemas.microsoft.com/office/word/2010/wordml\">\n  <w:autoSpaceDE w:val=\"0\"/>\n  <w:autoSpaceDN w:val=\"0\"/>\n  <w:spacing w:after=\"0\" w:line=\"312\" w:lineRule=\"exact\"/>\n  <w:rPr>\n    <w:lang w:val=\"ru-RU\"/>\n  </w:rPr>\n</w:pPr>\n"
+    },
+    "title": {
+      "paragraph": 1,
+      "pPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" xmlns:w14=\"http://schemas.microsoft.com/office/word/2010/wordml\">\n  <w:autoSpaceDE w:val=\"0\"/>\n  <w:autoSpaceDN w:val=\"0\"/>\n  <w:spacing w:before=\"332\" w:after=\"0\" w:line=\"245\" w:lineRule=\"auto\"/>\n  <w:ind w:left=\"144\" w:right=\"144\"/>\n  <w:jc w:val=\"center\"/>\n  <w:rPr>\n    <w:lang w:val=\"ru-RU\"/>\n  </w:rPr>\n</w:pPr>\n"
+    },
+    "authors": {
+      "paragraph": 2,
+      "pPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" xmlns:w14=\"http://schemas.microsoft.com/office/word/2010/wordml\">\n  <w:autoSpaceDE w:val=\"0\"/>\n  <w:autoSpaceDN w:val=\"0\"/>\n  <w:spacing w:before=\"324\" w:after=\"0\" w:line=\"238\" w:lineRule=\"auto\"/>\n  <w:rPr>\n    <w:lang w:val=\"ru-RU\"/>\n  </w:rPr>\n</w:pPr>\n"
+    },
+    "affiliation": {
+      "paragraph": 3,
+      "pPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" xmlns:w14=\"http://schemas.microsoft.com/office/word/2010/wordml\">\n  <w:autoSpaceDE w:val=\"0\"/>\n  <w:autoSpaceDN w:val=\"0\"/>\n  <w:spacing w:before=\"324\" w:after=\"0\" w:line=\"206\" w:lineRule=\"exact\"/>\n  <w:ind w:right=\"144\"/>\n  <w:rPr>\n    <w:lang w:val=\"ru-RU\"/>\n  </w:rPr>\n</w:pPr>\n"
+    },
+    "abstract": {
+      "paragraph": 6,
+      "pPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" xmlns:w14=\"http://schemas.microsoft.com/office/word/2010/wordml\">\n  <w:autoSpaceDE w:val=\"0\"/>\n  <w:autoSpaceDN w:val=\"0\"/>\n  <w:spacing w:after=\"0\" w:line=\"276\" w:lineRule=\"exact\"/>\n  <w:ind w:right=\"32\"/>\n  <w:jc w:val=\"both\"/>\n  <w:rPr>\n    <w:lang w:val=\"ru-RU\"/>\n  </w:rPr>\n</w:pPr>\n"
+    },
+    "body": {
+      "paragraph": 11,
+      "pPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" xmlns:w14=\"http://schemas.microsoft.com/office/word/2010/wordml\">\n  <w:autoSpaceDE w:val=\"0\"/>\n  <w:autoSpaceDN w:val=\"0\"/>\n  <w:spacing w:after=\"0\"/>\n  <w:ind w:right=\"20\" w:firstLine=\"709\"/>\n  <w:jc w:val=\"both\"/>\n  <w:rPr>\n    <w:rFonts w:ascii=\"Times New Roman\" w:hAnsi=\"Times New Roman\" w:cs=\"Times New Roman\"/>\n    <w:lang w:val=\"ru-RU\"/>\n  </w:rPr>\n</w:pPr>\n"
+    },
+    "caption": {
+      "paragraph": 35,
+      "pPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" xmlns:w14=\"http://schemas.microsoft.com/office/word/2010/wordml\">\n  <w:tabs>\n    <w:tab w:val=\"left\" w:pos=\"1148\"/>\n  </w:tabs>\n  <w:autoSpaceDE w:val=\"0\"/>\n  <w:autoSpaceDN w:val=\"0\"/>\n  <w:spacing w:before=\"346\" w:after=\"0\"/>\n  <w:ind w:left=\"34\" w:right=\"288\" w:firstLine=\"709\"/>\n  <w:jc w:val=\"center\"/>\n  <w:rPr>\n    <w:rFonts w:ascii=\"Times New Roman\" w:hAnsi=\"Times New Roman\" w:cs=\"Times New Roman\"/>\n    <w:lang w:val=\"ru-RU\"/>\n  </w:rPr>\n</w:pPr>\n"
+    },
+    "references": {
+      "paragraph": 46,
+      "pPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" xmlns:w14=\"http://schemas.microsoft.com/office/word/2010/wordml\">\n  <w:tabs>\n    <w:tab w:val=\"left\" w:pos=\"298\"/>\n  </w:tabs>\n  <w:autoSpaceDE w:val=\"0\"/>\n  <w:autoSpaceDN w:val=\"0\"/>\n  <w:spacing w:before=\"228\" w:after=\"0\" w:line=\"290\" w:lineRule=\"exact\"/>\n  <w:ind w:left=\"14\" w:right=\"144\" w:firstLine=\"270\"/>\n  <w:jc w:val=\"both\"/>\n</w:pPr>\n"
+    },
+    "contact": {
+      "paragraph": 59,
+      "pPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" xmlns:w14=\"http://schemas.microsoft.com/office/word/2010/wordml\">\n  <w:autoSpaceDE w:val=\"0\"/>\n  <w:autoSpaceDN w:val=\"0\"/>\n  <w:spacing w:before=\"54\" w:after=\"0\" w:line=\"266\" w:lineRule=\"exact\"/>\n  <w:rPr>\n    <w:rFonts w:ascii=\"TimesNewRomanPSMT\" w:eastAsia=\"TimesNewRomanPSMT\" w:hAnsi=\"TimesNewRomanPSMT\"/>\n    <w:color w:val=\"000000\"/>\n    <w:sz w:val=\"24\"/>\n    <w:lang w:val=\"ru-RU\"/>\n  </w:rPr>\n</w:pPr>\n"
+    },
+    "english_title": {
+      "paragraph": 63,
+      "pPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" xmlns:w14=\"http://schemas.microsoft.com/office/word/2010/wordml\">\n  <w:autoSpaceDE w:val=\"0\"/>\n  <w:autoSpaceDN w:val=\"0\"/>\n  <w:spacing w:after=\"0\" w:line=\"245\" w:lineRule=\"auto\"/>\n  <w:ind w:right=\"144\"/>\n</w:pPr>\n"
+    }
+  },
+  "parts": {
+    "[Content_Types].xml": {
+      "size": 2133,
+      "sha256": "94a44d122f0bde7da531ec054439302bc142b4209d3770500b58c21c283d7b9a"
+    },
+    "_rels/.rels": {
+      "size": 590,
+      "sha256": "e19238d7a71fa7a2490776252686f70e2de6238c87cd509b5e3a3cc07c2ea4df"
+    },
+    "word/document.xml": {
+      "size": 127556,
+      "sha256": "a589b83b39fdb5df269c2ed04eaf849b28e2b946ee5147b80c25d9bcb48070e6"
+    },
+    "word/_rels/document.xml.rels": {
+      "size": 2053,
+      "sha256": "8bd796768634fee286c3c5cd67a913f278e53610189122b99fe4534b914164c7"
+    },
+    "word/footnotes.xml": {
+      "size": 3021,
+      "sha256": "eb3d1d0657b10d1d9aba2bfd679036b508e140d5b83e1392675f5dfc72ffa720"
+    },
+    "word/endnotes.xml": {
+      "size": 3015,
+      "sha256": "cea9f8da7a017095e05e8f3f47a78931d6635e9f5939d989acd27228911d25a0"
+    },
+    "word/footer1.xml": {
+      "size": 4336,
+      "sha256": "084937485a9636ce905ba00bb9a4d0c9c023d2bbbb274886e359f50fe9097dbe"
+    },
+    "word/media/image1.emf": {
+      "size": 835916,
+      "sha256": "db6a99f357c1c6b55766e8a727c15cb216b51226524d117562d9e9e95ef5ff46"
+    },
+    "word/embeddings/Microsoft_Visio_2003-2010_Drawing.vsd": {
+      "size": 1042432,
+      "sha256": "12d34d66129fa3cb1a6d62da7d4550bfeba5617d04a863358cb4fd575da0a0f3"
+    },
+    "word/media/image2.png": {
+      "size": 51615,
+      "sha256": "3fecbeeec4b405ed718ac4e451a4ca177a08852b33dbd5dbc49c4704b76229fd"
+    },
+    "word/media/image3.png": {
+      "size": 135606,
+      "sha256": "514ae92131f8ff89c4dcc7a1e56f4d4a935292967fec4c086303fae5ba4fbd97"
+    },
+    "word/theme/theme1.xml": {
+      "size": 7643,
+      "sha256": "b2295d3198893d2c03f5e584c749a15751b798aefdcd9bee2889f13903d68cb2"
+    },
+    "word/settings.xml": {
+      "size": 8424,
+      "sha256": "46515e8350a8ea6ecb5449dae6a188efa61f7b0a2c6e2b36878f6f22ec428252"
+    },
+    "customXml/item1.xml": {
+      "size": 271,
+      "sha256": "70fa80a11a5427de0f976806c4495bfd30b6dd5c1a4b3c4a001942cd42466f6e"
+    },
+    "customXml/itemProps1.xml": {
+      "size": 341,
+      "sha256": "dc4976b1993df025c4d5c7b3da5fc0393211a6e623b8532c420f947b4684070f"
+    },
+    "word/numbering.xml": {
+      "size": 7249,
+      "sha256": "9d40ae015d8999b92b3ad5c510fbbc3c780b095328b72f6461ac93f7c2e92d6f"
+    },
+    "word/styles.xml": {
+      "size": 342995,
+      "sha256": "47bc62394a8ada2ef92cab63ed5555a7c6d528cdbcb6dd734e3b9ab11c3d7de0"
+    },
+    "word/webSettings.xml": {
+      "size": 1699,
+      "sha256": "47b900a5c84f0db9d5d636583194b82922b93fff907d5bb74602a1a78c7a18b7"
+    },
+    "word/fontTable.xml": {
+      "size": 3281,
+      "sha256": "f32edc693684a975bb5da7075854220d4330758536db9bb4eec7f44fc2628371"
+    },
+    "docProps/core.xml": {
+      "size": 869,
+      "sha256": "ce1c10e05efcc4f24b31f73cc6e7ad2b9075b69c4e0838b2fd1e99d97d26b4ff"
+    },
+    "docProps/app.xml": {
+      "size": 1171,
+      "sha256": "f21230a42feaa44a1e3d3ea75727878fdfe0851123b9c7a1878c8e70a3f435d5"
+    },
+    "customXml/_rels/item1.xml.rels": {
+      "size": 296,
+      "sha256": "80482f86e196171d66001e0e74d1900408a3aaf2463e54005d251b5f2db9a0b0"
+    }
+  }
+}

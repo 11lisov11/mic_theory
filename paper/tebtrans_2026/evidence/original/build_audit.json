@@ -1,0 +1,19 @@
+{
+  "output": "C:\\mic_practice\\output\\tebtrans_2026\\Марикин_Повышение_точности_ТЭБТРАНС_2026.docx",
+  "title": "ПОВЫШЕНИЕ ТОЧНОСТИ РЕГУЛИРОВАНИЯ СКОРОСТИ АСИНХРОННОГО ЭЛЕКТРОПРИВОДА ПРИ ИЗМЕНЕНИИ ПАРАМЕТРОВ ДВИГАТЕЛЯ",
+  "raw_sha256": "92f344e804b47553f8aa9cfe741c2b31501c4fabc36189144692a9c7f7041d5a",
+  "selected_comparison": "prespecified confidence_feedback vs fixed_reference",
+  "selected_cases": [
+    "parameter_drift",
+    "composite"
+  ],
+  "independent_seed_clusters": 20,
+  "numeric_tables": 0,
+  "figures": 3,
+  "conclusions": 3,
+  "main_text_words": 1331,
+  "main_text_numeric_tokens": 72,
+  "no_new_simulations": true,
+  "numerical_claims": "rounded original confirmation effects",
+  "no_claim_of_unique_superiority_over_other_adaptive_designs": true
+}

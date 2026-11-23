@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg
+  PUBLIC '-//W3C//DTD SVG 1.0//EN'
+  'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'>
+<svg width="600" height="260" preserveAspectRatio="xMinYMin meet" viewBox="0 0 600 260" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>...</title>
+	<desc>...</desc>
+	<clipPath id="clip">
+		<rect x="0" y="0" width="600" height="260"/>
+	</clipPath>
+	<g id="group" transform="scale(1,-1) translate(0,-260)" style="clip-path: url(#clip)">
+		<g transform="">
+			<rect x="75" y="150" width="145" height="55" style="stroke: rgb(0%,0%,0%); stroke-linecap: butt; stroke-width: 0.8; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="116.456787109375" y="180.88" style="font-family: Times New Roman; font-size: 13px;fill: rgb(0%,0%,0%); stroke:none;" transform="translate(0,361) scale(1,-1)">Векторный</text>
+			<text x="119.875" y="165.93" style="font-family: Times New Roman; font-size: 13px;fill: rgb(0%,0%,0%); stroke:none;" transform="translate(0,331) scale(1,-1)">регулятор</text>
+			<rect x="265" y="150" width="130" height="55" style="stroke: rgb(0%,0%,0%); stroke-linecap: butt; stroke-width: 0.8; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="282.7734375" y="180.88" style="font-family: Times New Roman; font-size: 13px;fill: rgb(0%,0%,0%); stroke:none;" transform="translate(0,361) scale(1,-1)">Преобразователь</text>
+			<text x="296.595458984375" y="165.93" style="font-family: Times New Roman; font-size: 13px;fill: rgb(0%,0%,0%); stroke:none;" transform="translate(0,331) scale(1,-1)">напряжения</text>
+			<rect x="440" y="150" width="140" height="55" style="stroke: rgb(0%,0%,0%); stroke-linecap: butt; stroke-width: 0.8; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="470.9111328125" y="180.88" style="font-family: Times New Roman; font-size: 13px;fill: rgb(0%,0%,0%); stroke:none;" transform="translate(0,361) scale(1,-1)">Асинхронный</text>
+			<text x="482.66064453125" y="165.93" style="font-family: Times New Roman; font-size: 13px;fill: rgb(0%,0%,0%); stroke:none;" transform="translate(0,331) scale(1,-1)">двигатель</text>
+			<rect x="335" y="25" width="245" height="65" style="stroke: rgb(0%,0%,0%); stroke-linecap: butt; stroke-width: 0.8; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="390.71630859375" y="60.879999999999995" style="font-family: Times New Roman; font-size: 13px;fill: rgb(0%,0%,0%); stroke:none;" transform="translate(0,121) scale(1,-1)">Наблюдатель состояния</text>
+			<text x="420.489990234375" y="45.92999999999999" style="font-family: Times New Roman; font-size: 13px;fill: rgb(0%,0%,0%); stroke:none;" transform="translate(0,91) scale(1,-1)">и параметров</text>
+			<rect x="75" y="25" width="165" height="65" style="stroke: rgb(0%,0%,0%); stroke-linecap: butt; stroke-width: 0.8; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="115.4404296875" y="60.879999999999995" style="font-family: Times New Roman; font-size: 13px;fill: rgb(0%,0%,0%); stroke:none;" transform="translate(0,121) scale(1,-1)">Корректировка</text>
+			<text x="125.593505859375" y="45.92999999999999" style="font-family: Times New Roman; font-size: 13px;fill: rgb(0%,0%,0%); stroke:none;" transform="translate(0,91) scale(1,-1)">параметров</text>
+			<polyline points="10 177, 75 177" style="stroke: rgb(0%,0%,0%); stroke-linecap: butt; stroke-width: 0.8; fill: None; fill-rule: evenodd;"/>
+			<polygon points="75 177, 70 174.8, 70 179.2" style="stroke: rgb(0%,0%,0%); stroke-linecap: butt; stroke-width: 0.3; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>
+			<text x="31.3134765625" y="188" style="font-family: Times New Roman; font-size: 15px;fill: rgb(0%,0%,0%); stroke:none;" transform="translate(0,376) scale(1,-1)">ω*</text>
+			<polyline points="220 177, 265 177" style="stroke: rgb(0%,0%,0%); stroke-linecap: butt; stroke-width: 0.8; fill: None; fill-rule: evenodd;"/>
+			<polygon points="265 177, 260 174.8, 260 179.2" style="stroke: rgb(0%,0%,0%); stroke-linecap: butt; stroke-width: 0.3; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>
+			<text x="235.5" y="188" style="font-family: Times New Roman; font-size: 13px;fill: rgb(0%,0%,0%); stroke:none;" transform="translate(0,376) scale(1,-1)">u*</text>
+			<polyline points="395 177, 440 177" style="stroke: rgb(0%,0%,0%); stroke-linecap: butt; stroke-width: 0.8; fill: None; fill-rule: evenodd;"/>
+			<polygon points="440 177, 435 174.8, 435 179.2" style="stroke: rgb(0%,0%,0%); stroke-linecap: butt; stroke-width: 0.3; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>
+			<text x="414.75" y="188" style="font-family: Times New Roman; font-size: 13px;fill: rgb(0%,0%,0%); stroke:none;" transform="translate(0,376) scale(1,-1)">u</text>
+			<polyline points="580 177, 598 177" style="stroke: rgb(0%,0%,0%); stroke-linecap: butt; stroke-width: 0.8; fill: None; fill-rule: evenodd;"/>
+			<polygon points="598 177, 593 174.8, 593 179.2" style="stroke: rgb(0%,0%,0%); stroke-linecap: butt; stroke-width: 0.3; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>
+			<text x="585.392578125" y="190" style="font-family: Times New Roman; font-size: 14px;fill: rgb(0%,0%,0%); stroke:none;" transform="translate(0,380) scale(1,-1)">ω</text>
+			<polyline points="510 232, 510 205" style="stroke: rgb(0%,0%,0%); stroke-linecap: butt; stroke-width: 0.8; fill: None; fill-rule: evenodd;"/>
+			<polygon points="510 205, 507.8 210, 512.2 210" style="stroke: rgb(0%,0%,0%); stroke-linecap: butt; stroke-width: 0.3; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>
+			<text x="465.041015625" y="242" style="font-family: Times New Roman; font-size: 12px;fill: rgb(0%,0%,0%); stroke:none;" transform="translate(0,484) scale(1,-1)">Момент нагрузки</text>
+			<polyline points="510 150, 510 90" style="stroke: rgb(0%,0%,0%); stroke-linecap: butt; stroke-width: 0.8; fill: None; fill-rule: evenodd;"/>
+			<polygon points="510 90, 507.8 95, 512.2 95" style="stroke: rgb(0%,0%,0%); stroke-linecap: butt; stroke-width: 0.3; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>
+			<text x="525.425537109375" y="115" style="font-family: Times New Roman; font-size: 13px;fill: rgb(0%,0%,0%); stroke:none;" transform="translate(0,230) scale(1,-1)">iα, iβ</text>
+			<polyline points="330 150, 330 115, 420 115, 420 90" style="stroke: rgb(0%,0%,0%); stroke-linecap: butt; stroke-width: 0.8; fill: None; fill-rule: evenodd;"/>
+			<polygon points="420 90, 417.8 95, 422.2 95" style="stroke: rgb(0%,0%,0%); stroke-linecap: butt; stroke-width: 0.3; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>
+			<text x="359.8037109375" y="122" style="font-family: Times New Roman; font-size: 12px;fill: rgb(0%,0%,0%); stroke:none;" transform="translate(0,244) scale(1,-1)">uα, uβ</text>
+			<polyline points="335 48, 240 48" style="stroke: rgb(0%,0%,0%); stroke-linecap: butt; stroke-width: 0.8; fill: None; fill-rule: evenodd;"/>
+			<polygon points="240 48, 245 50.2, 245 45.8" style="stroke: rgb(0%,0%,0%); stroke-linecap: butt; stroke-width: 0.3; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>
+			<text x="268.084716796875" y="69.0" style="font-family: Times New Roman; font-size: 11px;fill: rgb(0%,0%,0%); stroke:none;" transform="translate(0,138) scale(1,-1)">Оценки</text>
+			<text x="259.002197265625" y="56.35" style="font-family: Times New Roman; font-size: 11px;fill: rgb(0%,0%,0%); stroke:none;" transform="translate(0,112) scale(1,-1)">параметров</text>
+			<polyline points="157 90, 157 150" style="stroke: rgb(0%,0%,0%); stroke-linecap: butt; stroke-width: 0.8; fill: None; fill-rule: evenodd;"/>
+			<polygon points="157 150, 159.2 145, 154.8 145" style="stroke: rgb(0%,0%,0%); stroke-linecap: butt; stroke-width: 0.3; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>
+			<text x="85.3681640625" y="121.0" style="font-family: Times New Roman; font-size: 11px;fill: rgb(0%,0%,0%); stroke:none;" transform="translate(0,242) scale(1,-1)">Расчётные</text>
+			<text x="84.65380859375" y="108.35" style="font-family: Times New Roman; font-size: 11px;fill: rgb(0%,0%,0%); stroke:none;" transform="translate(0,216) scale(1,-1)">параметры</text>
+			<polyline points="335 80, 295 80, 295 110, 205 110, 205 150" style="stroke: rgb(0%,0%,0%); stroke-linecap: butt; stroke-width: 0.8; fill: None; fill-rule: evenodd;"/>
+			<polygon points="205 150, 207.2 145, 202.8 145" style="stroke: rgb(0%,0%,0%); stroke-linecap: butt; stroke-width: 0.3; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>
+			<text x="219.558349609375" y="137.0" style="font-family: Times New Roman; font-size: 11px;fill: rgb(0%,0%,0%); stroke:none;" transform="translate(0,274) scale(1,-1)">Оценки скорости</text>
+			<text x="234.753173828125" y="124.35" style="font-family: Times New Roman; font-size: 11px;fill: rgb(0%,0%,0%); stroke:none;" transform="translate(0,248) scale(1,-1)">и нагрузки</text>
+		</g>
+	</g>
+</svg>

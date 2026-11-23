@@ -1,0 +1,51 @@
+{
+  "raw_sha256": "92f344e804b47553f8aa9cfe741c2b31501c4fabc36189144692a9c7f7041d5a",
+  "seed": 97200,
+  "scenario": "composite",
+  "display_step_s": 0.005,
+  "metric_step_s": 0.0001,
+  "series": [
+    {
+      "metric": "speed_true",
+      "method": "fixed_reference",
+      "displayed_points": 340,
+      "min": 121.10635825165856,
+      "max": 155.97434543632056
+    },
+    {
+      "metric": "speed_true",
+      "method": "confidence_feedback",
+      "displayed_points": 340,
+      "min": 137.34593857999832,
+      "max": 151.05488934895322
+    },
+    {
+      "metric": "current_a",
+      "method": "fixed_reference",
+      "displayed_points": 340,
+      "min": 0.7890915798721332,
+      "max": 1.143548575268329
+    },
+    {
+      "metric": "current_a",
+      "method": "confidence_feedback",
+      "displayed_points": 340,
+      "min": 0.8448240339468749,
+      "max": 1.167061546248929
+    },
+    {
+      "metric": "torque_nm",
+      "method": "fixed_reference",
+      "displayed_points": 340,
+      "min": -0.0044743969963134305,
+      "max": 0.38178035343751443
+    },
+    {
+      "metric": "torque_nm",
+      "method": "confidence_feedback",
+      "displayed_points": 340,
+      "min": 0.005223855260205998,
+      "max": 0.4075097751494812
+    }
+  ]
+}

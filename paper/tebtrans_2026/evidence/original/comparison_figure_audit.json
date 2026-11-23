@@ -1,0 +1,50 @@
+[
+  {
+    "metric": "tracking_mae_rad_s",
+    "scenario": "parameter_drift",
+    "method": "fixed_reference",
+    "mean": 3.720798049256771
+  },
+  {
+    "metric": "tracking_mae_rad_s",
+    "scenario": "parameter_drift",
+    "method": "confidence_feedback",
+    "mean": 1.2584871859264584
+  },
+  {
+    "metric": "tracking_mae_rad_s",
+    "scenario": "composite",
+    "method": "fixed_reference",
+    "mean": 3.7686041702075395
+  },
+  {
+    "metric": "tracking_mae_rad_s",
+    "scenario": "composite",
+    "method": "confidence_feedback",
+    "mean": 1.2238994026142906
+  },
+  {
+    "metric": "peak_current_a",
+    "scenario": "parameter_drift",
+    "method": "fixed_reference",
+    "mean": 1.2839131247694089
+  },
+  {
+    "metric": "peak_current_a",
+    "scenario": "parameter_drift",
+    "method": "confidence_feedback",
+    "mean": 1.2820313214886991
+  },
+  {
+    "metric": "peak_current_a",
+    "scenario": "composite",
+    "method": "fixed_reference",
+    "mean": 1.2798831609822505
+  },
+  {
+    "metric": "peak_current_a",
+    "scenario": "composite",
+    "method": "confidence_feedback",
+    "mean": 1.290675819121137
+  }
+]

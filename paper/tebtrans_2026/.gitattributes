@@ -1,0 +1,2 @@
+# Preserve original bytes; CRLF is intentional in historical evidence.
+* -text whitespace=trailing-space,space-before-tab,cr-at-eol

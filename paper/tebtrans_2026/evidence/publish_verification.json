@@ -1,0 +1,36 @@
+{
+  "status": "PASS",
+  "manifest_files_verified": 85,
+  "frozen_source_hashes_verified": 14,
+  "confirmation_cases": 320,
+  "total_archived_cases": 1000,
+  "stages": {
+    "cap_training_20261006": 160,
+    "common_cap_training_20261006": 224,
+    "confirmation_20261006": 320,
+    "matched_covariance_20261027": 40,
+    "pilot_20261006": 64,
+    "training_20261006": 192
+  },
+  "figure_series_verified": 6,
+  "figure_means_verified": 8,
+  "primary_statistics_recomputed": true,
+  "final_article_unchanged": true,
+  "raw_sha256": "92f344e804b47553f8aa9cfe741c2b31501c4fabc36189144692a9c7f7041d5a",
+  "article_sha256": "16d6f5e72a916226e8043f604e694f4eeb3e716e997ff5d0730dbdf1691f6d14",
+  "pdf_sha256": "fbcdc19c9fd4be75491227f76efe951e9bce6e24129bcccc06706e24b55ac593",
+  "effects": {
+    "parameter_drift": {
+      "speed_error_reduction_percent": 66.17695533951806,
+      "torque_std_reduction_percent": 34.34476908046121,
+      "mean_trial_peak_current_change_percent": -0.14656780465950314,
+      "stator_copper_energy_change_percent": 2.989003600753315
+    },
+    "composite": {
+      "speed_error_reduction_percent": 67.5238006610047,
+      "torque_std_reduction_percent": 31.83349491802222,
+      "mean_trial_peak_current_change_percent": 0.843253389676879,
+      "stator_copper_energy_change_percent": 2.629490812147073
+    }
+  }
+}

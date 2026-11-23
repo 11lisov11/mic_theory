@@ -1,0 +1,142 @@
+{
+  "parameter_drift": {
+    "direct_feedback": {
+      "tracking_mae_rad_s": {
+        "ratio_to_joint_only": 1.7242616024328175,
+        "percent_change": 72.42616024328174,
+        "ci95_ratio": [
+          1.2777664330133827,
+          2.263924912777408
+        ]
+      },
+      "peak_current_a": {
+        "ratio_to_joint_only": 0.7506280965606908,
+        "percent_change": -24.937190343930915,
+        "ci95_ratio": [
+          0.7099983035428435,
+          0.7963210224623559
+        ]
+      },
+      "copper_energy_j": {
+        "ratio_to_joint_only": 1.0831497110114097,
+        "percent_change": 8.314971101140966,
+        "ci95_ratio": [
+          1.065058871414985,
+          1.1039512039938024
+        ]
+      },
+      "steady_torque_std_nm": {
+        "ratio_to_joint_only": 0.9706534992289925,
+        "percent_change": -2.9346500771007533,
+        "ci95_ratio": [
+          0.9079165804872764,
+          1.0381939057988387
+        ]
+      }
+    },
+    "confidence_feedback": {
+      "tracking_mae_rad_s": {
+        "ratio_to_joint_only": 1.7646975704291763,
+        "percent_change": 76.46975704291764,
+        "ci95_ratio": [
+          1.2573592833609464,
+          2.383922908384642
+        ]
+      },
+      "peak_current_a": {
+        "ratio_to_joint_only": 0.7523909627138757,
+        "percent_change": -24.760903728612426,
+        "ci95_ratio": [
+          0.7102339458992206,
+          0.799800198305973
+        ]
+      },
+      "copper_energy_j": {
+        "ratio_to_joint_only": 1.0825213723805773,
+        "percent_change": 8.252137238057733,
+        "ci95_ratio": [
+          1.0642544064141355,
+          1.1034367761776214
+        ]
+      },
+      "steady_torque_std_nm": {
+        "ratio_to_joint_only": 0.9656018392547225,
+        "percent_change": -3.439816074527746,
+        "ci95_ratio": [
+          0.9020213070746713,
+          1.0340348674817934
+        ]
+      }
+    }
+  },
+  "composite": {
+    "direct_feedback": {
+      "tracking_mae_rad_s": {
+        "ratio_to_joint_only": 1.5307754398113391,
+        "percent_change": 53.077543981133914,
+        "ci95_ratio": [
+          1.1599056462634072,
+          2.0147977183409074
+        ]
+      },
+      "peak_current_a": {
+        "ratio_to_joint_only": 0.7333323781640758,
+        "percent_change": -26.666762183592418,
+        "ci95_ratio": [
+          0.6961837721609965,
+          0.7763079526521396
+        ]
+      },
+      "copper_energy_j": {
+        "ratio_to_joint_only": 1.0819056010697,
+        "percent_change": 8.19056010696999,
+        "ci95_ratio": [
+          1.0641177969545996,
+          1.102358782539447
+        ]
+      },
+      "steady_torque_std_nm": {
+        "ratio_to_joint_only": 1.0092143972856589,
+        "percent_change": 0.9214397285658871,
+        "ci95_ratio": [
+          0.9344419496585696,
+          1.093787676755772
+        ]
+      }
+    },
+    "confidence_feedback": {
+      "tracking_mae_rad_s": {
+        "ratio_to_joint_only": 1.585900038390263,
+        "percent_change": 58.59000383902631,
+        "ci95_ratio": [
+          1.1958538482770584,
+          2.096540441886818
+        ]
+      },
+      "peak_current_a": {
+        "ratio_to_joint_only": 0.7285344535261142,
+        "percent_change": -27.146554647388577,
+        "ci95_ratio": [
+          0.691771149121903,
+          0.7711560140590895
+        ]
+      },
+      "copper_energy_j": {
+        "ratio_to_joint_only": 1.0810708422845543,
+        "percent_change": 8.107084228455431,
+        "ci95_ratio": [
+          1.0634730194421795,
+          1.101432853043531
+        ]
+      },
+      "steady_torque_std_nm": {
+        "ratio_to_joint_only": 1.0321404537077707,
+        "percent_change": 3.2140453707770744,
+        "ci95_ratio": [
+          0.9591287021551623,
+          1.1154915715860099
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "status": "PASS",
+  "full_confirmation": false,
+  "cases": 2,
+  "runtime_s": 22.84031269996194,
+  "original_sha256": "92f344e804b47553f8aa9cfe741c2b31501c4fabc36189144692a9c7f7041d5a",
+  "wrapper_sha256": "fd0dbdf918c5e1f421d89db96b2cd983c67401ff1db75ac09fc9df00ad4c8ed3",
+  "portable_path_overrides_only": true,
+  "relative_tolerance": 1e-07,
+  "absolute_tolerance": 1e-09,
+  "comparisons": [
+    {
+      "scenario": "composite",
+      "seed": 97200,
+      "method": "fixed_reference",
+      "pass_": true,
+      "identical_exogenous_conditions": true,
+      "metrics": {
+        "tracking_mae_rad_s": {
+          "actual": 3.767348904006452,
+          "archived": 3.767348904006452,
+          "matches": true
+        },
+        "estimation_mae_rad_s": {
+          "actual": 3.6514109844542575,
+          "archived": 3.6514109844542575,
+          "matches": true
+        },
+        "peak_current_a": {
+          "actual": 1.1453289848963455,
+          "archived": 1.1453289848963455,
+          "matches": true
+        },
+        "copper_energy_j": {
+          "actual": 29.092120478999203,
+          "archived": 29.092120478999203,
+          "matches": true
+        },
+        "steady_torque_std_nm": {
+          "actual": 0.009625831472292649,
+          "archived": 0.009625831472292649,
+          "matches": true
+        },
+        "steady_current_std_a": {
+          "actual": 0.029215087058627034,
+          "archived": 0.029215087058627034,
+          "matches": true
+        }
+      }
+    },
+    {
+      "scenario": "composite",
+      "seed": 97200,
+      "method": "confidence_feedback",
+      "pass_": true,
+      "identical_exogenous_conditions": true,
+      "metrics": {
+        "tracking_mae_rad_s": {
+          "actual": 0.6772531221670587,
+          "archived": 0.6772531221670587,
+          "matches": true
+        },
+        "estimation_mae_rad_s": {
+          "actual": 0.6720050450038906,
+          "archived": 0.6720050450038906,
+          "matches": true
+        },
+        "peak_current_a": {
+          "actual": 1.208654237672381,
+          "archived": 1.208654237672381,
+          "matches": true
+        },
+        "copper_energy_j": {
+          "actual": 30.134672028195034,
+          "archived": 30.134672028195034,
+          "matches": true
+        },
+        "steady_torque_std_nm": {
+          "actual": 0.006179631159719608,
+          "archived": 0.006179631159719608,
+          "matches": true
+        },
+        "steady_current_std_a": {
+          "actual": 0.011430721589202967,
+          "archived": 0.011430721589202967,
+          "matches": true
+        }
+      }
+    }
+  ]
+}

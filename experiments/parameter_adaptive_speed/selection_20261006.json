@@ -1,0 +1,78 @@
+{
+  "selection": {
+    "nominal": {
+      "fixed_reference": "fixed_q1",
+      "joint_only": "joint_estimator",
+      "direct_feedback": "joint_coupled",
+      "confidence_feedback": "joint_confidence"
+    },
+    "parameter_drift": {
+      "fixed_reference": "fixed_q0001",
+      "joint_only": "joint_estimator",
+      "direct_feedback": "joint_coupled",
+      "confidence_feedback": "joint_confidence"
+    },
+    "composite": {
+      "fixed_reference": "fixed_q0001",
+      "joint_only": "joint_estimator",
+      "direct_feedback": "joint_coupled",
+      "confidence_feedback": "joint_confidence"
+    },
+    "slow_composite": {
+      "fixed_reference": "fixed_q001",
+      "joint_only": "joint_estimator",
+      "direct_feedback": "joint_coupled",
+      "confidence_feedback": "joint_confidence"
+    }
+  },
+  "source_sha256": {
+    "C:\\mic_theory\\control\\current_only_induction_ekf.py": "ba16e37da2dc061068fd684a1e3c094f6577321a019849c2b1fbae7f9b2d5afc",
+    "C:\\mic_theory\\control\\current_only_speed_foc.py": "5d49f6966ed35f73f4a1ccb652c76020f45ef37ca43de68ec5552ced94f9b698",
+    "C:\\mic_theory\\control\\innovation_load_gate.py": "cc592785fb1b3c982033b87c4dbab9641634faca0817a2a8f022833d55ac0190",
+    "C:\\mic_theory\\tools\\study_current_only_speed_loop.py": "f2635275d788919120a46d2afff186686e3384094506b72d547f45226c115ee3",
+    "C:\\mic_theory\\config\\env.py": "d1a6e106e0838f75bebc99783c9ffce76ff97acef60687dbb94b5bdc03c4d400",
+    "C:\\mic_practice\\research\\mic_ai_theory\\snh_pwm\\source\\models\\induction_motor_current_flux_rk4.py": "943956c0d62f2f382ac25e4728b97a1a7411cf7972e1fa309778b518a47e1dfa",
+    "C:\\mic_theory\\tools\\study_torque_capped_adaptation.py": "38be2cc7d014eefb0c9d465d7aa929a8009d822a1f49f96b26d883947ee8cc23",
+    "C:\\mic_theory\\tools\\study_parameter_adaptive_speed.py": "d000f9210231e9b7cd945432810b71b267f54df1805678ef169de6f0900ef3a9",
+    "C:\\mic_theory\\control\\parameter_adaptive_induction_ekf.py": "36081be5d61df67ebf5a3abf60cb1bcc915945c11ac30973edaae7e5f1b99e21",
+    "C:\\mic_theory\\tools\\study_current_observer_stress.py": "c37f645984fdc2f4ba4912470ef3581a025a00ae43b7c3ee89be9fd4a87dfd31",
+    "C:\\mic_theory\\control\\timestamped_current_observer.py": "03c46a91cf4e55fe1bc3410afd669601cbba51fb8a7943a29edea5d658e5a915",
+    "C:\\mic_theory\\docs\\torque_capped_adaptation_protocol.md": "69f1be2887f40983880f082aa4ffaccfb91a1dd936e0d59beb72da462b096d2b",
+    "C:\\mic_theory\\tools\\confirm_parameter_adaptive_speed.py": "80196ef1e04e9c241f66e7734546bd4e93a0a9219e78291caa311e40fceb12ef",
+    "C:\\mic_theory\\docs\\parameter_adaptive_speed_confirmation_protocol.md": "4547ebb4bbb0cca677df5d2cd59ac7965bac8a3d7cdc5939169ce21f4088d53e"
+  },
+  "bundle_sha256": "5a95aab1a02643f17e4a41f7a2e957cc1de43d5f13d7487a7fbed7ec7748b115",
+  "training_path": "C:\\mic_theory\\experiments\\parameter_adaptive_speed\\common_cap_training_20261006\\results.json",
+  "training_sha256": "3d67a8ef7dc52cb97e78d13698e8983e3aa091b371d89971794b0da63c4aa18a",
+  "holdout_seeds": [
+    97200,
+    97201,
+    97202,
+    97203,
+    97204,
+    97205,
+    97206,
+    97207,
+    97208,
+    97209,
+    97210,
+    97211,
+    97212,
+    97213,
+    97214,
+    97215,
+    97216,
+    97217,
+    97218,
+    97219
+  ],
+  "torque_cap_nm": 0.6,
+  "primary_candidate": "confidence_feedback",
+  "primary_cases": [
+    "parameter_drift",
+    "composite"
+  ],
+  "bootstrap_draws": 10000,
+  "bootstrap_seed": 103314,
+  "confidence": 0.975
+}

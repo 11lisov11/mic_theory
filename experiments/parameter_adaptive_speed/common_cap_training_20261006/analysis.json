@@ -1,0 +1,561 @@
+{
+  "aggregates": [
+    {
+      "scenario": "nominal",
+      "method": "fixed_q0001_t060",
+      "tracking_mae_rad_s": 2.1749583574000697,
+      "estimation_mae_rad_s": 2.047736277321146,
+      "peak_current_a": 1.2528786114306136,
+      "copper_energy_j": 23.850325712329415,
+      "steady_torque_std_nm": 0.0009617995466393511,
+      "steady_current_std_a": 0.0030973907170675358,
+      "current_limit_violations": 0,
+      "censored_recoveries": 0,
+      "bound_hits": 0,
+      "runtime_s": 4.117845249998936
+    },
+    {
+      "scenario": "nominal",
+      "method": "fixed_q001_t060",
+      "tracking_mae_rad_s": 1.2420561217227215,
+      "estimation_mae_rad_s": 1.088532424897614,
+      "peak_current_a": 1.3585077838365982,
+      "copper_energy_j": 23.81192441957612,
+      "steady_torque_std_nm": 0.002739140782306972,
+      "steady_current_std_a": 0.00590354515520366,
+      "current_limit_violations": 0,
+      "censored_recoveries": 0,
+      "bound_hits": 0,
+      "runtime_s": 4.005890937496588
+    },
+    {
+      "scenario": "nominal",
+      "method": "fixed_q01_t060",
+      "tracking_mae_rad_s": 1.0289991531186704,
+      "estimation_mae_rad_s": 0.9473612578424497,
+      "peak_current_a": 1.3361259884684364,
+      "copper_energy_j": 23.792804498398873,
+      "steady_torque_std_nm": 0.007424186756285704,
+      "steady_current_std_a": 0.014124641069928525,
+      "current_limit_violations": 0,
+      "censored_recoveries": 0,
+      "bound_hits": 0,
+      "runtime_s": 3.9921950875032053
+    },
+    {
+      "scenario": "nominal",
+      "method": "fixed_q1_t060",
+      "tracking_mae_rad_s": 1.0016315042959594,
+      "estimation_mae_rad_s": 0.9564233909138691,
+      "peak_current_a": 1.47491966520119,
+      "copper_energy_j": 23.81515745054176,
+      "steady_torque_std_nm": 0.017524076871344094,
+      "steady_current_std_a": 0.03312807569091089,
+      "current_limit_violations": 0,
+      "censored_recoveries": 1,
+      "bound_hits": 0,
+      "runtime_s": 4.034971825007233
+    },
+    {
+      "scenario": "nominal",
+      "method": "joint_estimator_t060",
+      "tracking_mae_rad_s": 1.3187437448027763,
+      "estimation_mae_rad_s": 0.3752243504447155,
+      "peak_current_a": 2.0345375735343074,
+      "copper_energy_j": 26.11616825205632,
+      "steady_torque_std_nm": 0.07710964205643862,
+      "steady_current_std_a": 0.19561043958111607,
+      "current_limit_violations": 1,
+      "censored_recoveries": 2,
+      "bound_hits": 0,
+      "runtime_s": 5.990019362503517
+    },
+    {
+      "scenario": "nominal",
+      "method": "joint_coupled_t060",
+      "tracking_mae_rad_s": 1.7611661111305847,
+      "estimation_mae_rad_s": 1.7599242989198842,
+      "peak_current_a": 1.2340932890514322,
+      "copper_energy_j": 23.755814732144856,
+      "steady_torque_std_nm": 0.005857500617770231,
+      "steady_current_std_a": 0.011321426634743687,
+      "current_limit_violations": 0,
+      "censored_recoveries": 0,
+      "bound_hits": 0,
+      "runtime_s": 6.297935162503563
+    },
+    {
+      "scenario": "nominal",
+      "method": "joint_confidence_t060",
+      "tracking_mae_rad_s": 1.7893224021503096,
+      "estimation_mae_rad_s": 1.7882963481481673,
+      "peak_current_a": 1.2382289827267843,
+      "copper_energy_j": 23.754906127429567,
+      "steady_torque_std_nm": 0.0060394374742318135,
+      "steady_current_std_a": 0.011635171177423326,
+      "current_limit_violations": 0,
+      "censored_recoveries": 0,
+      "bound_hits": 0,
+      "runtime_s": 6.539190075003717
+    },
+    {
+      "scenario": "parameter_drift",
+      "method": "fixed_q0001_t060",
+      "tracking_mae_rad_s": 4.075873535896736,
+      "estimation_mae_rad_s": 3.9592070461307394,
+      "peak_current_a": 1.3323272770326868,
+      "copper_energy_j": 33.291673653043304,
+      "steady_torque_std_nm": 0.008339894136121828,
+      "steady_current_std_a": 0.029967955557311216,
+      "current_limit_violations": 0,
+      "censored_recoveries": 3,
+      "bound_hits": 0,
+      "runtime_s": 4.043779424991953
+    },
+    {
+      "scenario": "parameter_drift",
+      "method": "fixed_q001_t060",
+      "tracking_mae_rad_s": 4.352459263016318,
+      "estimation_mae_rad_s": 4.193891608517523,
+      "peak_current_a": 1.4241024731500675,
+      "copper_energy_j": 33.644794895708564,
+      "steady_torque_std_nm": 0.025308031569475354,
+      "steady_current_std_a": 0.05772551732574878,
+      "current_limit_violations": 0,
+      "censored_recoveries": 7,
+      "bound_hits": 0,
+      "runtime_s": 4.073637087501993
+    },
+    {
+      "scenario": "parameter_drift",
+      "method": "fixed_q01_t060",
+      "tracking_mae_rad_s": 5.717016005105877,
+      "estimation_mae_rad_s": 5.68449035666714,
+      "peak_current_a": 1.4916744739656418,
+      "copper_energy_j": 34.53447395894641,
+      "steady_torque_std_nm": 0.06665390160335898,
+      "steady_current_std_a": 0.1295337651620555,
+      "current_limit_violations": 0,
+      "censored_recoveries": 8,
+      "bound_hits": 0,
+      "runtime_s": 4.122722000003705
+    },
+    {
+      "scenario": "parameter_drift",
+      "method": "fixed_q1_t060",
+      "tracking_mae_rad_s": 5.933456171601373,
+      "estimation_mae_rad_s": 6.492715269639172,
+      "peak_current_a": 1.7312807904767007,
+      "copper_energy_j": 36.60578856236398,
+      "steady_torque_std_nm": 0.1233271733709414,
+      "steady_current_std_a": 0.2216384591441789,
+      "current_limit_violations": 0,
+      "censored_recoveries": 8,
+      "bound_hits": 0,
+      "runtime_s": 4.132874450006057
+    },
+    {
+      "scenario": "parameter_drift",
+      "method": "joint_estimator_t060",
+      "tracking_mae_rad_s": 0.873624626034919,
+      "estimation_mae_rad_s": 0.776113929915009,
+      "peak_current_a": 1.8283790400409596,
+      "copper_energy_j": 31.817049398123473,
+      "steady_torque_std_nm": 0.006066514721233128,
+      "steady_current_std_a": 0.013645018521976335,
+      "current_limit_violations": 0,
+      "censored_recoveries": 0,
+      "bound_hits": 0,
+      "runtime_s": 6.194413274995895
+    },
+    {
+      "scenario": "parameter_drift",
+      "method": "joint_coupled_t060",
+      "tracking_mae_rad_s": 1.601983304952407,
+      "estimation_mae_rad_s": 1.594874510844941,
+      "peak_current_a": 1.314795975188276,
+      "copper_energy_j": 34.12491531728581,
+      "steady_torque_std_nm": 0.0056077776234636535,
+      "steady_current_std_a": 0.011126806289054231,
+      "current_limit_violations": 0,
+      "censored_recoveries": 0,
+      "bound_hits": 0,
+      "runtime_s": 6.314236562502629
+    },
+    {
+      "scenario": "parameter_drift",
+      "method": "joint_confidence_t060",
+      "tracking_mae_rad_s": 1.6010901946800025,
+      "estimation_mae_rad_s": 1.5889873814161781,
+      "peak_current_a": 1.3036465871998013,
+      "copper_energy_j": 34.13438732877995,
+      "steady_torque_std_nm": 0.005599456005845511,
+      "steady_current_std_a": 0.011139904937616026,
+      "current_limit_violations": 0,
+      "censored_recoveries": 0,
+      "bound_hits": 0,
+      "runtime_s": 6.5458511500037275
+    },
+    {
+      "scenario": "composite",
+      "method": "fixed_q0001_t060",
+      "tracking_mae_rad_s": 4.108721307045653,
+      "estimation_mae_rad_s": 3.986228814982328,
+      "peak_current_a": 1.327909611308085,
+      "copper_energy_j": 33.37474895829688,
+      "steady_torque_std_nm": 0.009294263474840383,
+      "steady_current_std_a": 0.028328396908328328,
+      "current_limit_violations": 0,
+      "censored_recoveries": 3,
+      "bound_hits": 0,
+      "runtime_s": 8.437473462490743
+    },
+    {
+      "scenario": "composite",
+      "method": "fixed_q001_t060",
+      "tracking_mae_rad_s": 4.426625824606194,
+      "estimation_mae_rad_s": 4.267984784697882,
+      "peak_current_a": 1.4163080116479074,
+      "copper_energy_j": 33.74927990608791,
+      "steady_torque_std_nm": 0.02641376391590894,
+      "steady_current_std_a": 0.05693711700118527,
+      "current_limit_violations": 0,
+      "censored_recoveries": 7,
+      "bound_hits": 0,
+      "runtime_s": 8.50735361250554
+    },
+    {
+      "scenario": "composite",
+      "method": "fixed_q01_t060",
+      "tracking_mae_rad_s": 5.84337276336945,
+      "estimation_mae_rad_s": 5.804211296114081,
+      "peak_current_a": 1.49393144654062,
+      "copper_energy_j": 34.685965798977314,
+      "steady_torque_std_nm": 0.07012912801092933,
+      "steady_current_std_a": 0.13630117500280398,
+      "current_limit_violations": 0,
+      "censored_recoveries": 8,
+      "bound_hits": 0,
+      "runtime_s": 8.532280487506796
+    },
+    {
+      "scenario": "composite",
+      "method": "fixed_q1_t060",
+      "tracking_mae_rad_s": 5.970178830269289,
+      "estimation_mae_rad_s": 6.8055235490298145,
+      "peak_current_a": 1.6986191565348188,
+      "copper_energy_j": 36.77003546101208,
+      "steady_torque_std_nm": 0.12832971259173714,
+      "steady_current_std_a": 0.23207443637256878,
+      "current_limit_violations": 0,
+      "censored_recoveries": 8,
+      "bound_hits": 0,
+      "runtime_s": 8.58507993749663
+    },
+    {
+      "scenario": "composite",
+      "method": "joint_estimator_t060",
+      "tracking_mae_rad_s": 0.7871339020772445,
+      "estimation_mae_rad_s": 0.6808789623934379,
+      "peak_current_a": 1.9097564591008473,
+      "copper_energy_j": 31.82078075292192,
+      "steady_torque_std_nm": 0.006610261948298984,
+      "steady_current_std_a": 0.01480869828549508,
+      "current_limit_violations": 0,
+      "censored_recoveries": 0,
+      "bound_hits": 0,
+      "runtime_s": 18.21116466249441
+    },
+    {
+      "scenario": "composite",
+      "method": "joint_coupled_t060",
+      "tracking_mae_rad_s": 1.3265842547910895,
+      "estimation_mae_rad_s": 1.3161537336641977,
+      "peak_current_a": 1.2882461561270064,
+      "copper_energy_j": 34.14491982196784,
+      "steady_torque_std_nm": 0.006179665911439586,
+      "steady_current_std_a": 0.012147868062248678,
+      "current_limit_violations": 0,
+      "censored_recoveries": 0,
+      "bound_hits": 0,
+      "runtime_s": 18.231641137503175
+    },
+    {
+      "scenario": "composite",
+      "method": "joint_confidence_t060",
+      "tracking_mae_rad_s": 1.241482250743009,
+      "estimation_mae_rad_s": 1.2308427852860788,
+      "peak_current_a": 1.2953795185656147,
+      "copper_energy_j": 34.146751133554815,
+      "steady_torque_std_nm": 0.006213026101666779,
+      "steady_current_std_a": 0.01222830116876338,
+      "current_limit_violations": 0,
+      "censored_recoveries": 0,
+      "bound_hits": 0,
+      "runtime_s": 18.51223386250058
+    },
+    {
+      "scenario": "slow_composite",
+      "method": "fixed_q0001_t060",
+      "tracking_mae_rad_s": 6.411668518373778,
+      "estimation_mae_rad_s": 6.251470261417346,
+      "peak_current_a": 1.3533812664125957,
+      "copper_energy_j": 31.109098096264837,
+      "steady_torque_std_nm": 0.009228137701752077,
+      "steady_current_std_a": 0.019002747769634017,
+      "current_limit_violations": 0,
+      "censored_recoveries": 8,
+      "bound_hits": 0,
+      "runtime_s": 8.51729208749748
+    },
+    {
+      "scenario": "slow_composite",
+      "method": "fixed_q001_t060",
+      "tracking_mae_rad_s": 5.366208336036898,
+      "estimation_mae_rad_s": 5.240100293122959,
+      "peak_current_a": 1.4562806920576477,
+      "copper_energy_j": 31.209020440694367,
+      "steady_torque_std_nm": 0.014178864923740972,
+      "steady_current_std_a": 0.0278999524178977,
+      "current_limit_violations": 0,
+      "censored_recoveries": 8,
+      "bound_hits": 0,
+      "runtime_s": 8.469902400000137
+    },
+    {
+      "scenario": "slow_composite",
+      "method": "fixed_q01_t060",
+      "tracking_mae_rad_s": 5.548303831005644,
+      "estimation_mae_rad_s": 5.552771006394056,
+      "peak_current_a": 1.4037194033490619,
+      "copper_energy_j": 31.35948881106053,
+      "steady_torque_std_nm": 0.020095012161225653,
+      "steady_current_std_a": 0.0386356831782903,
+      "current_limit_violations": 0,
+      "censored_recoveries": 8,
+      "bound_hits": 0,
+      "runtime_s": 8.448890699994081
+    },
+    {
+      "scenario": "slow_composite",
+      "method": "fixed_q1_t060",
+      "tracking_mae_rad_s": 5.516303546778978,
+      "estimation_mae_rad_s": 5.486083453569492,
+      "peak_current_a": 1.539386834237218,
+      "copper_energy_j": 31.4451636860058,
+      "steady_torque_std_nm": 0.025379370681102187,
+      "steady_current_std_a": 0.048592501186514724,
+      "current_limit_violations": 0,
+      "censored_recoveries": 8,
+      "bound_hits": 0,
+      "runtime_s": 8.403107225003623
+    },
+    {
+      "scenario": "slow_composite",
+      "method": "joint_estimator_t060",
+      "tracking_mae_rad_s": 1.8391083147636724,
+      "estimation_mae_rad_s": 1.764289327540833,
+      "peak_current_a": 1.6770631130728793,
+      "copper_energy_j": 30.418458270808202,
+      "steady_torque_std_nm": 0.007066918421845217,
+      "steady_current_std_a": 0.013378775469175274,
+      "current_limit_violations": 0,
+      "censored_recoveries": 8,
+      "bound_hits": 0,
+      "runtime_s": 17.621708099995885
+    },
+    {
+      "scenario": "slow_composite",
+      "method": "joint_coupled_t060",
+      "tracking_mae_rad_s": 2.7972239595262494,
+      "estimation_mae_rad_s": 2.7618227965348203,
+      "peak_current_a": 1.3175691809034022,
+      "copper_energy_j": 32.59944430602256,
+      "steady_torque_std_nm": 0.007785565077617167,
+      "steady_current_std_a": 0.014124677358057848,
+      "current_limit_violations": 0,
+      "censored_recoveries": 8,
+      "bound_hits": 0,
+      "runtime_s": 17.451196500005608
+    },
+    {
+      "scenario": "slow_composite",
+      "method": "joint_confidence_t060",
+      "tracking_mae_rad_s": 2.5958825879153107,
+      "estimation_mae_rad_s": 2.5601011283938124,
+      "peak_current_a": 1.3152475996103925,
+      "copper_energy_j": 32.61731774089892,
+      "steady_torque_std_nm": 0.007794908081384321,
+      "steady_current_std_a": 0.014081904798540719,
+      "current_limit_violations": 0,
+      "censored_recoveries": 8,
+      "bound_hits": 0,
+      "runtime_s": 17.51718856250227
+    }
+  ],
+  "comparisons": [
+    {
+      "scenario": "nominal",
+      "candidate": "joint_estimator_t060",
+      "baseline": "fixed_q1_t060",
+      "reduction_percent": -31.659571324058255,
+      "exploratory_difference_ci95": [
+        -0.2511044626374621,
+        1.0005057632602958
+      ],
+      "peak_increase_percent": 37.94226367283411,
+      "copper_change_percent": 9.6619592219501,
+      "candidate_current_limit_violations": 1
+    },
+    {
+      "scenario": "nominal",
+      "candidate": "joint_coupled_t060",
+      "baseline": "fixed_q1_t060",
+      "reduction_percent": -75.82974413015269,
+      "exploratory_difference_ci95": [
+        0.2900810710707966,
+        1.244532627354216
+      ],
+      "peak_increase_percent": -16.32810124047721,
+      "copper_change_percent": -0.24918045795055965,
+      "candidate_current_limit_violations": 0
+    },
+    {
+      "scenario": "nominal",
+      "candidate": "joint_confidence_t060",
+      "baseline": "fixed_q1_t060",
+      "reduction_percent": -78.64078700360102,
+      "exploratory_difference_ci95": [
+        0.25994333988765894,
+        1.3599590180708065
+      ],
+      "peak_increase_percent": -16.047699956737603,
+      "copper_change_percent": -0.2529956950203749,
+      "candidate_current_limit_violations": 0
+    },
+    {
+      "scenario": "parameter_drift",
+      "candidate": "joint_estimator_t060",
+      "baseline": "fixed_q0001_t060",
+      "reduction_percent": 78.56595357189579,
+      "exploratory_difference_ci95": [
+        -3.699607520162292,
+        -2.6559810042455627
+      ],
+      "peak_increase_percent": 37.23197532313998,
+      "copper_change_percent": -4.429408597140416,
+      "candidate_current_limit_violations": 0
+    },
+    {
+      "scenario": "parameter_drift",
+      "candidate": "joint_coupled_t060",
+      "baseline": "fixed_q0001_t060",
+      "reduction_percent": 60.695951656901606,
+      "exploratory_difference_ci95": [
+        -3.0179619231021535,
+        -1.9392684757977074
+      ],
+      "peak_increase_percent": -1.3158404955467051,
+      "copper_change_percent": 2.5028530344443523,
+      "candidate_current_limit_violations": 0
+    },
+    {
+      "scenario": "parameter_drift",
+      "candidate": "joint_confidence_t060",
+      "baseline": "fixed_q0001_t060",
+      "reduction_percent": 60.71786377621883,
+      "exploratory_difference_ci95": [
+        -2.972288510095253,
+        -1.9727152897160696
+      ],
+      "peak_increase_percent": -2.1526760224231167,
+      "copper_change_percent": 2.5313046274548334,
+      "candidate_current_limit_violations": 0
+    },
+    {
+      "scenario": "composite",
+      "candidate": "joint_estimator_t060",
+      "baseline": "fixed_q0001_t060",
+      "reduction_percent": 80.84236327425118,
+      "exploratory_difference_ci95": [
+        -3.829066886644108,
+        -2.765023952242972
+      ],
+      "peak_increase_percent": 43.81675099253193,
+      "copper_change_percent": -4.656119533113801,
+      "candidate_current_limit_violations": 0
+    },
+    {
+      "scenario": "composite",
+      "candidate": "joint_coupled_t060",
+      "baseline": "fixed_q0001_t060",
+      "reduction_percent": 67.71296577073123,
+      "exploratory_difference_ci95": [
+        -3.1429633299782656,
+        -2.4036576276888244
+      ],
+      "peak_increase_percent": -2.986909262747728,
+      "copper_change_percent": 2.307645413702808,
+      "candidate_current_limit_violations": 0
+    },
+    {
+      "scenario": "composite",
+      "candidate": "joint_confidence_t060",
+      "baseline": "fixed_q0001_t060",
+      "reduction_percent": 69.78421854473045,
+      "exploratory_difference_ci95": [
+        -3.3152604683649747,
+        -2.3968392502214297
+      ],
+      "peak_increase_percent": -2.4497219137096127,
+      "copper_change_percent": 2.3131325308920925,
+      "candidate_current_limit_violations": 0
+    },
+    {
+      "scenario": "slow_composite",
+      "candidate": "joint_estimator_t060",
+      "baseline": "fixed_q001_t060",
+      "reduction_percent": 65.72797402566171,
+      "exploratory_difference_ci95": [
+        -4.459843018733042,
+        -2.6326356629922323
+      ],
+      "peak_increase_percent": 15.160705090670245,
+      "copper_change_percent": -2.533120741128192,
+      "candidate_current_limit_violations": 0
+    },
+    {
+      "scenario": "slow_composite",
+      "candidate": "joint_coupled_t060",
+      "baseline": "fixed_q001_t060",
+      "reduction_percent": 47.87336263593372,
+      "exploratory_difference_ci95": [
+        -3.3091231931571916,
+        -1.8338884404557079
+      ],
+      "peak_increase_percent": -9.525053233951308,
+      "copper_change_percent": 4.455198675557215,
+      "candidate_current_limit_violations": 0
+    },
+    {
+      "scenario": "slow_composite",
+      "candidate": "joint_confidence_t060",
+      "baseline": "fixed_q001_t060",
+      "reduction_percent": 51.625385647392775,
+      "exploratory_difference_ci95": [
+        -3.4053795404355607,
+        -2.1617936455026427
+      ],
+      "peak_increase_percent": -9.684471765397296,
+      "copper_change_percent": 4.5124687680624165,
+      "candidate_current_limit_violations": 0
+    }
+  ],
+  "seed_clusters": 8,
+  "verdict": "EXPLORATORY_ONLY",
+  "baseline_selection": "best fixed Q per scenario on THIS cohort; not independent confirmation",
+  "provenance": {
+    "raw_results_sha256": "3d67a8ef7dc52cb97e78d13698e8983e3aa091b371d89971794b0da63c4aa18a",
+    "source_match": true
+  }
+}

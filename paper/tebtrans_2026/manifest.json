@@ -1,0 +1,432 @@
+{
+  "format": 1,
+  "assembled_on": "2026-11-24",
+  "article_revision": "2026-10-29",
+  "files": [
+    {
+      "path": "paper/tebtrans_2026/.gitattributes",
+      "bytes": 132,
+      "sha256": "335901d10841d712f42e72516f04221005cde51191b1304d9a6f125f4adf662d"
+    },
+    {
+      "path": "paper/tebtrans_2026/.gitignore",
+      "bytes": 7,
+      "sha256": "127672b43b817aa8f10c44cdb48d4eeef8c0201da894e8a2430cce505ab49933"
+    },
+    {
+      "path": "paper/tebtrans_2026/article/manuscript.txt",
+      "bytes": 28017,
+      "sha256": "4a77af22c067bde90f82c5cd612ac54cd0fe5e3b23d3c4928515d7b3177a50f4"
+    },
+    {
+      "path": "paper/tebtrans_2026/article/Марикин_Повышение_точности_ТЭБТРАНС_2026.docx",
+      "bytes": 1278489,
+      "sha256": "16d6f5e72a916226e8043f604e694f4eeb3e716e997ff5d0730dbdf1691f6d14"
+    },
+    {
+      "path": "paper/tebtrans_2026/article/Марикин_Повышение_точности_ТЭБТРАНС_2026.pdf",
+      "bytes": 571084,
+      "sha256": "fbcdc19c9fd4be75491227f76efe951e9bce6e24129bcccc06706e24b55ac593"
+    },
+    {
+      "path": "paper/tebtrans_2026/authoring/build_vak.py",
+      "bytes": 37451,
+      "sha256": "6705b30db60c9ba01b41193766c2539ecc9d0b537dc4a85ecb7fed65731fd58a"
+    },
+    {
+      "path": "paper/tebtrans_2026/authoring/matched_covariance_study.py",
+      "bytes": 6130,
+      "sha256": "b61d343046a83c496c19206d19ad06bf0381645b170af656c443397adfdaa90f"
+    },
+    {
+      "path": "paper/tebtrans_2026/authoring/reader_rasterize.cjs",
+      "bytes": 600,
+      "sha256": "011934fe293ffff1aa929e3919189d14a5e79c2b6656b5d16256f2e241b6a7e4"
+    },
+    {
+      "path": "paper/tebtrans_2026/authoring/reader_revision_20261029.py",
+      "bytes": 38334,
+      "sha256": "ef7cc0f90fb17ed712c937a010a1e94ba9ed9432f83a0044d6e22b0152aa4305"
+    },
+    {
+      "path": "paper/tebtrans_2026/authoring/reader_revision_20261029_audit.py",
+      "bytes": 9940,
+      "sha256": "850ee6361e7e1fb33b53e843b2467b946828aa4cf8b5c5810d8b3bd71247b9be"
+    },
+    {
+      "path": "paper/tebtrans_2026/authoring/README.md",
+      "bytes": 1791,
+      "sha256": "c0c8de860ca67b69cde9b947aaebb79fa4ab21ec011e22ba9316a1ba93b704aa"
+    },
+    {
+      "path": "paper/tebtrans_2026/authoring/rewrite_article.py",
+      "bytes": 44552,
+      "sha256": "32f76406a5fd0e352155484591adce9239ebe24d890ecacf0012a26e00b88423"
+    },
+    {
+      "path": "paper/tebtrans_2026/evidence/original/build_audit.json",
+      "bytes": 916,
+      "sha256": "2d53b52edc1b967d58d7fef53db08d550c93c9816afd879635c48a3a213379b6"
+    },
+    {
+      "path": "paper/tebtrans_2026/evidence/original/comparison_figure_audit.json",
+      "bytes": 1177,
+      "sha256": "63a2f86c469aec7dc4670a95e44d3c5aa191d0a820a58edb4fc84902bb604ed9"
+    },
+    {
+      "path": "paper/tebtrans_2026/evidence/original/literature_review.json",
+      "bytes": 1288,
+      "sha256": "d4512d143e416a7d333f7581ec97451f2deab7d61ed082356d54cc8ac3adef14"
+    },
+    {
+      "path": "paper/tebtrans_2026/evidence/original/mechanism_final_audit.json",
+      "bytes": 2603,
+      "sha256": "2202b41045176b00a4c0538b352f0116cf4f654443392bff93c7f7d8cc01924a"
+    },
+    {
+      "path": "paper/tebtrans_2026/evidence/original/reference_audit.json",
+      "bytes": 11358,
+      "sha256": "c3db2bfacb52ef998ff4e455391146b1419603c9f4ab6ce8f0f2f80ebd017bbf"
+    },
+    {
+      "path": "paper/tebtrans_2026/evidence/original/trace_figure_audit.json",
+      "bytes": 1309,
+      "sha256": "1ce227fa0e1fe3536b6b33db04f5542f035626a53efb8382d9a32670924ef006"
+    },
+    {
+      "path": "paper/tebtrans_2026/evidence/publish_verification.json",
+      "bytes": 1376,
+      "sha256": "380d9d57cda40ac4d116fc4cdafba917097311a0e46c06572d877636830bd36b"
+    },
+    {
+      "path": "paper/tebtrans_2026/evidence/simulation_replay.json",
+      "bytes": 2706,
+      "sha256": "9efc39c7581a0a3c385d0f761c6314e0f53f7a8e29fbda83eab2b9e705d45dec"
+    },
+    {
+      "path": "paper/tebtrans_2026/figures/figure_1.jpg",
+      "bytes": 454294,
+      "sha256": "4d1fdb1834da8f27b954f1510ae4bc40990c9faa3eb5ab7f273243efe9ec3bc8"
+    },
+    {
+      "path": "paper/tebtrans_2026/figures/figure_1.svg",
+      "bytes": 9101,
+      "sha256": "b64911d2f1a5ed509fc083554cc5ce682730bcbdb99782b2b1897d582e29cc87"
+    },
+    {
+      "path": "paper/tebtrans_2026/figures/figure_2.jpg",
+      "bytes": 797690,
+      "sha256": "eefc3f432cbba3d613f509ea835b9650e0004df18751ea337ab1306ba71b414f"
+    },
+    {
+      "path": "paper/tebtrans_2026/figures/figure_2.svg",
+      "bytes": 48311,
+      "sha256": "2d89edd864ebfb40a0228d4e8119407867cd7bd5db69791251eae19139015269"
+    },
+    {
+      "path": "paper/tebtrans_2026/figures/figure_3.jpg",
+      "bytes": 424999,
+      "sha256": "e8671d3276f88f97e73a575f94c62d632017097aac1df7488fa6fc6828d3c722"
+    },
+    {
+      "path": "paper/tebtrans_2026/figures/figure_3.svg",
+      "bytes": 9776,
+      "sha256": "eb4a41e1b2f4c4e443659b2756bb5badf76c582c361a4ba3b2418f87e57dddc2"
+    },
+    {
+      "path": "paper/tebtrans_2026/README.md",
+      "bytes": 8938,
+      "sha256": "1fbec4200fddf027d9fee3429370b3572bdbb467ff2d30fe63a7d6b5192d4136"
+    },
+    {
+      "path": "paper/tebtrans_2026/reproduction/motor_bundle.json",
+      "bytes": 1210761,
+      "sha256": "5a95aab1a02643f17e4a41f7a2e957cc1de43d5f13d7487a7fbed7ec7748b115"
+    },
+    {
+      "path": "paper/tebtrans_2026/reproduction/requirements.txt",
+      "bytes": 15,
+      "sha256": "105a25c9a24a53a42b52ccc93f930e1ea4a88b42372d440ae7c1b82c3a8b2c64"
+    },
+    {
+      "path": "paper/tebtrans_2026/reproduction/rerun_simulation.py",
+      "bytes": 5237,
+      "sha256": "fd0dbdf918c5e1f421d89db96b2cd983c67401ff1db75ac09fc9df00ad4c8ed3"
+    },
+    {
+      "path": "paper/tebtrans_2026/reproduction/source/config/__init__.py",
+      "bytes": 74,
+      "sha256": "8ccfcd79cd4e9f2d0cec1ca3efc213a0a61482f8f41bb403008ecc511c337e97"
+    },
+    {
+      "path": "paper/tebtrans_2026/reproduction/source/config/env.py",
+      "bytes": 8636,
+      "sha256": "d1a6e106e0838f75bebc99783c9ffce76ff97acef60687dbb94b5bdc03c4d400"
+    },
+    {
+      "path": "paper/tebtrans_2026/reproduction/source/control/__init__.py",
+      "bytes": 82,
+      "sha256": "e7e7cc04b0133e44ec14c18c697d89ff4f41134d0537b5815c79deb99b884615"
+    },
+    {
+      "path": "paper/tebtrans_2026/reproduction/source/control/current_only_induction_ekf.py",
+      "bytes": 5713,
+      "sha256": "ba16e37da2dc061068fd684a1e3c094f6577321a019849c2b1fbae7f9b2d5afc"
+    },
+    {
+      "path": "paper/tebtrans_2026/reproduction/source/control/current_only_speed_foc.py",
+      "bytes": 3454,
+      "sha256": "5d49f6966ed35f73f4a1ccb652c76020f45ef37ca43de68ec5552ced94f9b698"
+    },
+    {
+      "path": "paper/tebtrans_2026/reproduction/source/control/innovation_load_gate.py",
+      "bytes": 2059,
+      "sha256": "cc592785fb1b3c982033b87c4dbab9641634faca0817a2a8f022833d55ac0190"
+    },
+    {
+      "path": "paper/tebtrans_2026/reproduction/source/control/parameter_adaptive_induction_ekf.py",
+      "bytes": 4950,
+      "sha256": "36081be5d61df67ebf5a3abf60cb1bcc915945c11ac30973edaae7e5f1b99e21"
+    },
+    {
+      "path": "paper/tebtrans_2026/reproduction/source/control/timestamped_current_observer.py",
+      "bytes": 3833,
+      "sha256": "03c46a91cf4e55fe1bc3410afd669601cbba51fb8a7943a29edea5d658e5a915"
+    },
+    {
+      "path": "paper/tebtrans_2026/reproduction/source/docs/parameter_adaptive_speed_confirmation_protocol.md",
+      "bytes": 3317,
+      "sha256": "4547ebb4bbb0cca677df5d2cd59ac7965bac8a3d7cdc5939169ce21f4088d53e"
+    },
+    {
+      "path": "paper/tebtrans_2026/reproduction/source/docs/parameter_adaptive_speed_protocol.md",
+      "bytes": 3485,
+      "sha256": "2f938a01cfca79518cf0557fce2a988ea5f7cd54b305cc5d97a7804371697524"
+    },
+    {
+      "path": "paper/tebtrans_2026/reproduction/source/docs/parameter_adaptive_speed_research.md",
+      "bytes": 11047,
+      "sha256": "bcce1bd450111557f5e16f88b4ff7d97d3e982a6f568fa8824210e84544cf995"
+    },
+    {
+      "path": "paper/tebtrans_2026/reproduction/source/docs/research_checkpoint_20261006_parameter_adaptive_speed.md",
+      "bytes": 3635,
+      "sha256": "a5bf04fafaf44942290243262c118f7b8c827cc71c59de5159267fc6b2387a6f"
+    },
+    {
+      "path": "paper/tebtrans_2026/reproduction/source/docs/torque_capped_adaptation_protocol.md",
+      "bytes": 1582,
+      "sha256": "69f1be2887f40983880f082aa4ffaccfb91a1dd936e0d59beb72da462b096d2b"
+    },
+    {
+      "path": "paper/tebtrans_2026/reproduction/source/external_model/induction_motor_current_flux_rk4.py",
+      "bytes": 7039,
+      "sha256": "943956c0d62f2f382ac25e4728b97a1a7411cf7972e1fa309778b518a47e1dfa"
+    },
+    {
+      "path": "paper/tebtrans_2026/reproduction/source/tools/__init__.py",
+      "bytes": 594,
+      "sha256": "f42221a6d76afb47ca11315e4f6a43a68fcc5f9b8b74706c4761b0f8cef5d26d"
+    },
+    {
+      "path": "paper/tebtrans_2026/reproduction/source/tools/analyze_parameter_adaptive_confirmation.py",
+      "bytes": 7168,
+      "sha256": "5ed72cbf5abc6ffd4b9c8c92b2c888d2014d6590ee971d49d6fde54e0f22c95a"
+    },
+    {
+      "path": "paper/tebtrans_2026/reproduction/source/tools/analyze_parameter_adaptive_speed.py",
+      "bytes": 5740,
+      "sha256": "76dab6e690b1d4e6dc9e71b4e46805cde7bd8353f59e655ac4118d8b0d60ffd9"
+    },
+    {
+      "path": "paper/tebtrans_2026/reproduction/source/tools/checkpoint_registry.py",
+      "bytes": 3375,
+      "sha256": "1bd9477cb3af7b4a9000424eabdbefc1fc7b9d961124c1d11a9668565278989b"
+    },
+    {
+      "path": "paper/tebtrans_2026/reproduction/source/tools/common_utils.py",
+      "bytes": 2893,
+      "sha256": "c9e1f497e4ad0db5fb0744c0ace4237f6ca2418839b3ad8dce01f243848757e3"
+    },
+    {
+      "path": "paper/tebtrans_2026/reproduction/source/tools/confirm_parameter_adaptive_speed.py",
+      "bytes": 5773,
+      "sha256": "80196ef1e04e9c241f66e7734546bd4e93a0a9219e78291caa311e40fceb12ef"
+    },
+    {
+      "path": "paper/tebtrans_2026/reproduction/source/tools/study_current_observer_stress.py",
+      "bytes": 11242,
+      "sha256": "c37f645984fdc2f4ba4912470ef3581a025a00ae43b7c3ee89be9fd4a87dfd31"
+    },
+    {
+      "path": "paper/tebtrans_2026/reproduction/source/tools/study_current_only_speed_loop.py",
+      "bytes": 14212,
+      "sha256": "f2635275d788919120a46d2afff186686e3384094506b72d547f45226c115ee3"
+    },
+    {
+      "path": "paper/tebtrans_2026/reproduction/source/tools/study_parameter_adaptive_speed.py",
+      "bytes": 9626,
+      "sha256": "d000f9210231e9b7cd945432810b71b267f54df1805678ef169de6f0900ef3a9"
+    },
+    {
+      "path": "paper/tebtrans_2026/reproduction/source/tools/study_torque_capped_adaptation.py",
+      "bytes": 4235,
+      "sha256": "38be2cc7d014eefb0c9d465d7aa929a8009d822a1f49f96b26d883947ee8cc23"
+    },
+    {
+      "path": "paper/tebtrans_2026/reproduction/source_paths.json",
+      "bytes": 3969,
+      "sha256": "d53035ce4457830b86c4379096a61df7c851b086df5fec933cab80c9b311d435"
+    },
+    {
+      "path": "paper/tebtrans_2026/reproduction/verify_results.py",
+      "bytes": 7541,
+      "sha256": "6f7da8a2396892ae1b8b6a8267b09e24f74f9c40925307860fcb14c3678220ec"
+    },
+    {
+      "path": "experiments/parameter_adaptive_speed/.gitattributes",
+      "bytes": 132,
+      "sha256": "335901d10841d712f42e72516f04221005cde51191b1304d9a6f125f4adf662d"
+    },
+    {
+      "path": "experiments/parameter_adaptive_speed/cap_training_20261006/aggregate.csv",
+      "bytes": 13731,
+      "sha256": "084b9d619107af14d955d46e789a1138bfb97841aeffa6979f78242d2f3983d9"
+    },
+    {
+      "path": "experiments/parameter_adaptive_speed/cap_training_20261006/analysis.json",
+      "bytes": 48422,
+      "sha256": "7bcc2acf5538ad42b917dc14f8928c3186b50e2e5d5663c2bc00853ee469f988"
+    },
+    {
+      "path": "experiments/parameter_adaptive_speed/cap_training_20261006/results.json",
+      "bytes": 18731696,
+      "sha256": "50632bae05fcfa854a7806f2eeeddbb9f133e8f87741d1de7886422bf5aa641b"
+    },
+    {
+      "path": "experiments/parameter_adaptive_speed/cap_training_20261006/results_report.md",
+      "bytes": 1964,
+      "sha256": "83e49fe1d45ccc1ead1318f2c1a4d0cf71403e9dad67fff2934dd04d342939e1"
+    },
+    {
+      "path": "experiments/parameter_adaptive_speed/common_cap_training_20261006/aggregate.csv",
+      "bytes": 4965,
+      "sha256": "9063d2cc661748b8ac2832ce3bbf160db07e63196de15855d6c4c19bd7e646df"
+    },
+    {
+      "path": "experiments/parameter_adaptive_speed/common_cap_training_20261006/analysis.json",
+      "bytes": 20005,
+      "sha256": "0ba41b4d7ee450270d83482db496cdf27a446ff193e91d7da2068f1d285e123c"
+    },
+    {
+      "path": "experiments/parameter_adaptive_speed/common_cap_training_20261006/results.json",
+      "bytes": 7148726,
+      "sha256": "3d67a8ef7dc52cb97e78d13698e8983e3aa091b371d89971794b0da63c4aa18a"
+    },
+    {
+      "path": "experiments/parameter_adaptive_speed/common_cap_training_20261006/results_report.md",
+      "bytes": 1614,
+      "sha256": "3359fff43fb78c359d00416d7c74163247cbbebc5942acc5169e6ea52370a8a4"
+    },
+    {
+      "path": "experiments/parameter_adaptive_speed/confirmation_20261006/aggregate.csv",
+      "bytes": 2907,
+      "sha256": "a7daab1c3db4df677c2f7ffb5519395e1ca77ddd6647a947c22884b83316ca75"
+    },
+    {
+      "path": "experiments/parameter_adaptive_speed/confirmation_20261006/analysis.json",
+      "bytes": 37634,
+      "sha256": "af1166d34c50f5dec2e387f7b3691dc79afc59f9c44b78f647a5a7fc6f58a153"
+    },
+    {
+      "path": "experiments/parameter_adaptive_speed/confirmation_20261006/confirmation.png",
+      "bytes": 96794,
+      "sha256": "af570381968021b9577d282c1e1b50dbed69c53e8d465c2aa3e302ed686cffb3"
+    },
+    {
+      "path": "experiments/parameter_adaptive_speed/confirmation_20261006/confirmation.svg",
+      "bytes": 147385,
+      "sha256": "5a7f76868c5c6dfe9ee65a0de30262c8772b2742dbdc81dee7ff459a42e6dfbc"
+    },
+    {
+      "path": "experiments/parameter_adaptive_speed/confirmation_20261006/results.json",
+      "bytes": 4667376,
+      "sha256": "92f344e804b47553f8aa9cfe741c2b31501c4fabc36189144692a9c7f7041d5a"
+    },
+    {
+      "path": "experiments/parameter_adaptive_speed/confirmation_20261006/results_report.md",
+      "bytes": 4693,
+      "sha256": "51aa6577bb1903f241b90dcb40507870ce94d90a2741d025e3ce596e3dd01424"
+    },
+    {
+      "path": "experiments/parameter_adaptive_speed/matched_covariance_20261027/analysis.json",
+      "bytes": 9580,
+      "sha256": "46465527e63e9a9738749184123bac3df8254c6756e5005ca41f50f2a3e58bb1"
+    },
+    {
+      "path": "experiments/parameter_adaptive_speed/matched_covariance_20261027/channel_analysis.json",
+      "bytes": 3951,
+      "sha256": "2a8f32cdec171b9f733901117bdfa23176c790d6b5381b09f1e79522816ad9fa"
+    },
+    {
+      "path": "experiments/parameter_adaptive_speed/matched_covariance_20261027/protocol.json",
+      "bytes": 3802,
+      "sha256": "cee763f3251c6253ae58d07f636ed3dcf8d63813d9ec51b920857bcee95deea5"
+    },
+    {
+      "path": "experiments/parameter_adaptive_speed/matched_covariance_20261027/results.json",
+      "bytes": 494307,
+      "sha256": "98460b8566eb8d7123808815ee671f2aa5bfe8e876089218979991d953242d5c"
+    },
+    {
+      "path": "experiments/parameter_adaptive_speed/pilot_20261006/aggregate.csv",
+      "bytes": 5480,
+      "sha256": "6ad61c01314775037c6def708f5c7dde5c2f1a4a521cc9c81c5fbf7db33c87be"
+    },
+    {
+      "path": "experiments/parameter_adaptive_speed/pilot_20261006/analysis.json",
+      "bytes": 23453,
+      "sha256": "9e0cd9650af4902a49a004aee5164890a1a37413114b9ee11c3976a5f88ccb77"
+    },
+    {
+      "path": "experiments/parameter_adaptive_speed/pilot_20261006/results.json",
+      "bytes": 7977852,
+      "sha256": "4a367e91cb3294eccaf715a1399c4e8ce691389464b7677bf8915e4b8cedcf9e"
+    },
+    {
+      "path": "experiments/parameter_adaptive_speed/pilot_20261006/results_report.md",
+      "bytes": 1766,
+      "sha256": "368c9e2d5caec295ce76b29b8ac7f7b9c33e60074e20da059ec65b29bc1ae08c"
+    },
+    {
+      "path": "experiments/parameter_adaptive_speed/README.md",
+      "bytes": 2695,
+      "sha256": "580682538e37c8f9dfc1accbc37ec3c06e185bf38ff5c9e191b9a4a4f7d2de61"
+    },
+    {
+      "path": "experiments/parameter_adaptive_speed/selection_20261006.json",
+      "bytes": 3539,
+      "sha256": "ad8e8704d4a9656c1b9f52b90b1cbdf895363bf021c5ac69e693ae9bc01ddfea"
+    },
+    {
+      "path": "experiments/parameter_adaptive_speed/training_20261006/aggregate.csv",
+      "bytes": 4163,
+      "sha256": "4ae646c6125523867472f5305c8778aa7a25916c96e7fd3488ff5cb92f16a62e"
+    },
+    {
+      "path": "experiments/parameter_adaptive_speed/training_20261006/analysis.json",
+      "bytes": 16002,
+      "sha256": "b851ee69279fd4e78f1c26080f6c7e7f98a2a79fbe812a8f8d22cd91b6dc1f1b"
+    },
+    {
+      "path": "experiments/parameter_adaptive_speed/training_20261006/results.json",
+      "bytes": 5985942,
+      "sha256": "4669294f2a0e50e9a71620b8c576e2059f727e4518453205238e29f6051e074e"
+    },
+    {
+      "path": "experiments/parameter_adaptive_speed/training_20261006/results_report.md",
+      "bytes": 1197,
+      "sha256": "76e0be002c900a60b18e8d065ea15cc5b0f902811f3dcbecd76aefd2a691f5d3"
+    }
+  ]
+}
