@@ -57,6 +57,7 @@ def test_score_requires_motion_of_the_plant():
     x[:, 2] = x[:, 3] = [profile(i, 0.3, 4.2)[0] for i in t]
     x[:, 1] = x[:, 2]
     assert score(x)["passes"]
+    assert score(x)["reverse_shaft_confirmation_s"] == pytest.approx(0.91)
     assert score(x, seconds=12.5) == {"complete": False}
     x[:, 1] = 0.3
     assert not score(x)["passes"]

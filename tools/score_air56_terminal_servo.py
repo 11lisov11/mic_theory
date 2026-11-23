@@ -34,6 +34,16 @@ def score(trace, leg=4.2, start=1.0, seconds=None):
                     sign = 1 if key == "forward" else -1
                     result[key + "_" + name + "_1s_sign_fraction"] = float(np.mean(sign * rpm > 0))
     mask = t >= start + 0.65
+    # Use only past angle samples. Record the time the direction decision
+    # becomes available, including the 0.3 s confirmation interval.
+    reversal = start + leg + 0.125
+    times = np.arange(reversal, start + 2 * leg, 0.01)
+    for name, angle in (("shaft", actual), ("observer", estimated)):
+        rpm = (np.interp(times, t, angle) - np.interp(times - 1, t, angle)) * 30 / np.pi
+        confirmed = np.convolve((rpm < -0.02).astype(int), np.ones(31), mode="valid")
+        found = np.flatnonzero(confirmed == 31)
+        if len(found):
+            result["reverse_" + name + "_confirmation_s"] = float(times[found[0] + 30] - reversal)
     result.update(
         max_all_read_deg=float(np.max(abs(wrap(estimated - actual)))),
         p95_read_deg=float(np.percentile(abs(wrap(estimated[mask] - actual[mask])), 95)),
@@ -43,8 +53,11 @@ def score(trace, leg=4.2, start=1.0, seconds=None):
         max_command_v=float(np.max(np.linalg.norm(trace[:, 11:13], axis=1))),
         complete=True,
     )
+    holding = trace[t >= windows["hold"][0]]
+    result["hold_max_abs_track_deg"] = float(np.max(abs(wrap(holding[:, 1] - holding[:, 3]))))
+    result["hold_field_mean_nm"] = float(np.mean(holding[:, 9]))
+    result["hold_load_mean_nm"] = float(np.mean(holding[:, 7]))
     if trace.shape[1] >= 19:
-        holding = trace[t >= windows["hold"][0]]
         result["hold_switch_range_deg"] = float(np.rad2deg(holding[:, 18].max() - holding[:, 17].min()))
     result["passes"] = (
         all(
