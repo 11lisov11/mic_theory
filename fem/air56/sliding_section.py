@@ -178,10 +178,13 @@ def winding_rhs(g, section, basis, current_source="belts"):
     return np.column_stack([current.assemble(basis, source=u) for u in density])
 
 
-def solve(g, frequency, section, stator_resistance, *, transfer=False, current_source="belts"):
+def solve(g, frequency, section, stator_resistance, *, transfer=False, current_source="belts", element_mu=None):
     basis = Basis(section.mesh, ElementTriP2(), intorder=4)
     sigma = np.where(section.cage, g.aluminium_sigma, 0.0)
-    nu = 1/(MU0*np.where(section.steel, g.mu_r, 1.0))
+    mu = np.where(section.steel, g.mu_r, 1.0) if element_mu is None else np.asarray(element_mu)
+    if mu.shape != section.steel.shape or not np.isfinite(mu).all() or np.any(mu <= 0):
+        raise ValueError("invalid element permeability")
+    nu = 1/(MU0*mu)
     w = TAU*frequency
     areas = basis.dx.sum(axis=1)
     rhs = winding_rhs(g, section, basis, current_source)

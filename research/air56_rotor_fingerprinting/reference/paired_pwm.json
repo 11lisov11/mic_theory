@@ -1,0 +1,274 @@
+{
+  "trials_per_channel": 72,
+  "marker": {
+    "B0_model_only": {
+      "angle_p95_deg": 67.50736531436446,
+      "full_angle_mae_deg": 80.98345276667834,
+      "speed_rmse_rad_s": 1.8989182261698307,
+      "probe_fraction": 0.0,
+      "probe_copper_energy_j": 0.0,
+      "positive_electrical_input_j": 3.310734178929318,
+      "switch_loss_proxy_j": 0.009244427626289695,
+      "switches_per_s": 12757.77777777778,
+      "torque_ripple_rms_nm": 0.05006758899565871,
+      "current_peak_a": 1.7925261780410016,
+      "marker_terminal_probe_energy_delta_j": 0.0,
+      "hpd95_width_deg": null
+    },
+    "B1_belief": {
+      "angle_p95_deg": 10.816773216284348,
+      "full_angle_mae_deg": 111.0859838968015,
+      "speed_rmse_rad_s": 2.087893683247571,
+      "probe_fraction": 0.0,
+      "probe_copper_energy_j": 0.0,
+      "positive_electrical_input_j": 3.310734178929318,
+      "switch_loss_proxy_j": 0.009244427626289695,
+      "switches_per_s": 12757.77777777778,
+      "torque_ripple_rms_nm": 0.05006758899565871,
+      "current_peak_a": 1.7925261780410016,
+      "marker_terminal_probe_energy_delta_j": 0.0,
+      "hpd95_width_deg": 23.70111111111111
+    },
+    "B2_fixed_probe": {
+      "angle_p95_deg": 5.271498695752381,
+      "full_angle_mae_deg": 109.62781736589363,
+      "speed_rmse_rad_s": 1.6378335999544804,
+      "probe_fraction": 1.0,
+      "probe_copper_energy_j": 0.0008240623149834517,
+      "positive_electrical_input_j": 4.528516181130559,
+      "switch_loss_proxy_j": 0.020901320415136856,
+      "switches_per_s": 66403.33333333334,
+      "torque_ripple_rms_nm": 0.05345756754383633,
+      "current_peak_a": 1.8094724470978758,
+      "marker_terminal_probe_energy_delta_j": 5.1202626361908136e-05,
+      "hpd95_width_deg": 13.03111111111111
+    },
+    "B3_info_fisher": {
+      "angle_p95_deg": 4.823796615829312,
+      "full_angle_mae_deg": 109.49818766466258,
+      "speed_rmse_rad_s": 1.8901266624444888,
+      "probe_fraction": 1.0,
+      "probe_copper_energy_j": 0.0008196081143990829,
+      "positive_electrical_input_j": 4.558442936005178,
+      "switch_loss_proxy_j": 0.019354168079072545,
+      "switches_per_s": 64263.70370370371,
+      "torque_ripple_rms_nm": 0.05291471451652266,
+      "current_peak_a": 1.8148426150995993,
+      "marker_terminal_probe_energy_delta_j": -4.4146381116709894e-05,
+      "hpd95_width_deg": 12.918194444444445
+    },
+    "B3_info_renyi2": {
+      "angle_p95_deg": 5.044457834949071,
+      "full_angle_mae_deg": 109.66638235576654,
+      "speed_rmse_rad_s": 2.025743897751506,
+      "probe_fraction": 1.0,
+      "probe_copper_energy_j": 0.000820566222756307,
+      "positive_electrical_input_j": 4.560330017370503,
+      "switch_loss_proxy_j": 0.01931264662146703,
+      "switches_per_s": 64236.29629629631,
+      "torque_ripple_rms_nm": 0.05293621359300018,
+      "current_peak_a": 1.8148252711314805,
+      "marker_terminal_probe_energy_delta_j": -2.4183412256913376e-05,
+      "hpd95_width_deg": 12.91236111111111
+    },
+    "B3_info_separation": {
+      "angle_p95_deg": 4.764111409453449,
+      "full_angle_mae_deg": 109.83407857124249,
+      "speed_rmse_rad_s": 2.026508524625122,
+      "probe_fraction": 1.0,
+      "probe_copper_energy_j": 0.0008206695053750003,
+      "positive_electrical_input_j": 4.559660437788967,
+      "switch_loss_proxy_j": 0.019310551989125842,
+      "switches_per_s": 64234.07407407408,
+      "torque_ripple_rms_nm": 0.05293487263559919,
+      "current_peak_a": 1.8148252890039944,
+      "marker_terminal_probe_energy_delta_j": -2.2023137808498322e-05,
+      "hpd95_width_deg": 12.913194444444443
+    },
+    "B3_lag4": {
+      "angle_p95_deg": 4.711722898293073,
+      "full_angle_mae_deg": 109.92379981245776,
+      "speed_rmse_rad_s": 2.026508524625122,
+      "probe_fraction": 1.0,
+      "probe_copper_energy_j": 0.0008206695053750003,
+      "positive_electrical_input_j": 4.559660437788967,
+      "switch_loss_proxy_j": 0.019310551989125842,
+      "switches_per_s": 64234.07407407408,
+      "torque_ripple_rms_nm": 0.05293487263559919,
+      "current_peak_a": 1.8148252890039944,
+      "marker_terminal_probe_energy_delta_j": -2.2023137808498322e-05,
+      "hpd95_width_deg": 12.685833333333331
+    },
+    "B3_sparse": {
+      "angle_p95_deg": 10.257869350875554,
+      "full_angle_mae_deg": 111.22669047530434,
+      "speed_rmse_rad_s": 2.0116467865257963,
+      "probe_fraction": 0.002814814814814815,
+      "probe_copper_energy_j": 2.311500366536945e-06,
+      "positive_electrical_input_j": 3.3118763696402747,
+      "switch_loss_proxy_j": 0.009261926969051013,
+      "switches_per_s": 12922.962962962964,
+      "torque_ripple_rms_nm": 0.050015960530003,
+      "current_peak_a": 1.7972347351793927,
+      "marker_terminal_probe_energy_delta_j": -3.2967800680862093e-08,
+      "hpd95_width_deg": 23.09166666666667
+    }
+  },
+  "unmarked": {
+    "B0_model_only": {
+      "angle_p95_deg": 67.50736531436446,
+      "full_angle_mae_deg": 80.98345276667834,
+      "speed_rmse_rad_s": 1.8989182261698307,
+      "probe_fraction": 0.0,
+      "probe_copper_energy_j": 0.0,
+      "positive_electrical_input_j": 3.310734178929318,
+      "switch_loss_proxy_j": 0.009244427626289695,
+      "switches_per_s": 12757.77777777778,
+      "torque_ripple_rms_nm": 0.05006758899565871,
+      "current_peak_a": 1.7925261780410016,
+      "marker_terminal_probe_energy_delta_j": 0.0,
+      "hpd95_width_deg": null
+    },
+    "B1_belief": {
+      "angle_p95_deg": 67.50736531436446,
+      "full_angle_mae_deg": 80.98345276667834,
+      "speed_rmse_rad_s": 1.8989182261698307,
+      "probe_fraction": 0.0,
+      "probe_copper_energy_j": 0.0,
+      "positive_electrical_input_j": 3.310734178929318,
+      "switch_loss_proxy_j": 0.009244427626289695,
+      "switches_per_s": 12757.77777777778,
+      "torque_ripple_rms_nm": 0.05006758899565871,
+      "current_peak_a": 1.7925261780410016,
+      "marker_terminal_probe_energy_delta_j": 0.0,
+      "hpd95_width_deg": 172.49999999999997
+    },
+    "B2_fixed_probe": {
+      "angle_p95_deg": 67.50736531439667,
+      "full_angle_mae_deg": 80.98345276671414,
+      "speed_rmse_rad_s": 1.8989182261698307,
+      "probe_fraction": 1.0,
+      "probe_copper_energy_j": 0.0008207276479328751,
+      "positive_electrical_input_j": 4.528516181130559,
+      "switch_loss_proxy_j": 0.020901320415136856,
+      "switches_per_s": 66403.33333333334,
+      "torque_ripple_rms_nm": 0.05345756754383633,
+      "current_peak_a": 1.8094724470978758,
+      "marker_terminal_probe_energy_delta_j": 0.0,
+      "hpd95_width_deg": 172.49999999999997
+    },
+    "B3_info_fisher": {
+      "angle_p95_deg": 67.50736531439667,
+      "full_angle_mae_deg": 80.98345276671414,
+      "speed_rmse_rad_s": 1.8989182261698307,
+      "probe_fraction": 1.0,
+      "probe_copper_energy_j": 0.0008207276479328751,
+      "positive_electrical_input_j": 4.186544796393975,
+      "switch_loss_proxy_j": 0.020661985996212037,
+      "switches_per_s": 65506.666666666664,
+      "torque_ripple_rms_nm": 0.05402995954891977,
+      "current_peak_a": 1.8023200936858512,
+      "marker_terminal_probe_energy_delta_j": 0.0,
+      "hpd95_width_deg": 172.49999999999997
+    },
+    "B3_info_renyi2": {
+      "angle_p95_deg": 67.50736531439667,
+      "full_angle_mae_deg": 80.98345276671414,
+      "speed_rmse_rad_s": 1.8989182261698307,
+      "probe_fraction": 1.0,
+      "probe_copper_energy_j": 0.0008207276479328751,
+      "positive_electrical_input_j": 4.186544796393975,
+      "switch_loss_proxy_j": 0.020661985996212037,
+      "switches_per_s": 65506.666666666664,
+      "torque_ripple_rms_nm": 0.05402995954891977,
+      "current_peak_a": 1.8023200936858512,
+      "marker_terminal_probe_energy_delta_j": 0.0,
+      "hpd95_width_deg": 172.49999999999997
+    },
+    "B3_info_separation": {
+      "angle_p95_deg": 67.50736531439667,
+      "full_angle_mae_deg": 80.98345276671414,
+      "speed_rmse_rad_s": 1.8989182261698307,
+      "probe_fraction": 1.0,
+      "probe_copper_energy_j": 0.0008207276479328751,
+      "positive_electrical_input_j": 4.186544796393975,
+      "switch_loss_proxy_j": 0.020661985996212037,
+      "switches_per_s": 65506.666666666664,
+      "torque_ripple_rms_nm": 0.05402995954891977,
+      "current_peak_a": 1.8023200936858512,
+      "marker_terminal_probe_energy_delta_j": 0.0,
+      "hpd95_width_deg": 172.49999999999997
+    },
+    "B3_lag4": {
+      "angle_p95_deg": 67.50673554508766,
+      "full_angle_mae_deg": 80.96887722358969,
+      "speed_rmse_rad_s": 1.8989182261698307,
+      "probe_fraction": 1.0,
+      "probe_copper_energy_j": 0.0008207276479328751,
+      "positive_electrical_input_j": 4.186544796393975,
+      "switch_loss_proxy_j": 0.020661985996212037,
+      "switches_per_s": 65506.666666666664,
+      "torque_ripple_rms_nm": 0.05402995954891977,
+      "current_peak_a": 1.8023200936858512,
+      "marker_terminal_probe_energy_delta_j": 0.0,
+      "hpd95_width_deg": 172.49999999999997
+    },
+    "B3_sparse": {
+      "angle_p95_deg": 67.50736531436446,
+      "full_angle_mae_deg": 80.98345276667834,
+      "speed_rmse_rad_s": 1.8989182261698307,
+      "probe_fraction": 0.0,
+      "probe_copper_energy_j": 0.0,
+      "positive_electrical_input_j": 3.310734178929318,
+      "switch_loss_proxy_j": 0.009244427626289695,
+      "switches_per_s": 12757.77777777778,
+      "torque_ripple_rms_nm": 0.05006758899565871,
+      "current_peak_a": 1.7925261780410016,
+      "marker_terminal_probe_energy_delta_j": 0.0,
+      "hpd95_width_deg": 172.49999999999997
+    }
+  },
+  "paired_effect_of_marker": {
+    "B0_model_only": {
+      "mean_deg": 0.0,
+      "max_abs_deg": 0.0
+    },
+    "B1_belief": {
+      "mean_deg": -56.690592098080124,
+      "max_abs_deg": 80.95488015560187
+    },
+    "B2_fixed_probe": {
+      "mean_deg": -62.23586661864428,
+      "max_abs_deg": 81.18110588501749
+    },
+    "B3_info_separation": {
+      "mean_deg": -62.74325390494322,
+      "max_abs_deg": 81.70062578911924
+    },
+    "B3_info_renyi2": {
+      "mean_deg": -62.462907479447594,
+      "max_abs_deg": 81.76047384796266
+    },
+    "B3_lag4": {
+      "mean_deg": -62.79501264679459,
+      "max_abs_deg": 81.7974690873051
+    },
+    "B3_sparse": {
+      "mean_deg": -57.24949596348891,
+      "max_abs_deg": 81.69896458975336
+    },
+    "B3_info_fisher": {
+      "mean_deg": -62.683568698567356,
+      "max_abs_deg": 82.25262614730279
+    }
+  },
+  "equal_nonzero_probe_count_fixed_vs_fisher": {
+    "case_count": 9,
+    "seed_groups": 3,
+    "adaptive_minus_fixed_p95_deg": -0.4477020799230707,
+    "bootstrap_95_deg": [
+      -2.009041785126128,
+      0.9135621814566273
+    ]
+  }
+}

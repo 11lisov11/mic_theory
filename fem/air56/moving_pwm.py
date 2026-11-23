@@ -139,9 +139,67 @@ def advance_modal(state, poles, decay, hold, drive, legs, rise, fall, base_volta
 
 
 @njit(cache=True)
+def segment_change(state, poles, drive, flux, voltage, duration, guard):
+    """Advance one switching state and return the guarded current increment."""
+    change = np.zeros(2)
+    aperture = duration-2*guard
+    for i in range(len(state)):
+        rate = poles[i]
+        forcing = drive[i, 0]*voltage[0]+drive[i, 1]*voltage[1]
+        derivative = forcing-rate*state[i]
+        if aperture > 0.:
+            increment = -np.exp(-rate*guard)*np.expm1(-rate*aperture)*derivative/STATOR_OHM
+            change[0] += flux[0, i]*increment
+            change[1] += flux[1, i]*increment
+        state[i] -= np.expm1(-rate*duration)*derivative/rate
+    return change
+
+
+@njit(cache=True)
+def slope_period(state_a, state_b, poles, drive, flux, rise, fall, voltage, weight, row):
+    """Record the active-minus-passive slope and its voltage-time increment."""
+    guard = .35e-6
+    min_aperture = .50e-6
+    cuts = np.sort(np.concatenate((np.array([0, TIMER_TICKS]), rise, fall)))
+    active_time, passive_time = 0., 0.
+    n_active, n_passive = 0, 0
+    active_i, passive_i, volt_seconds = np.zeros(2), np.zeros(2), np.zeros(2)
+    for j in range(7):
+        left, right = cuts[j], cuts[j+1]
+        if left == right:
+            continue
+        duration = (right-left)/TIMER_HZ
+        aperture = duration-2*guard
+        middle = .5*(left+right)
+        on = (rise <= middle) & (middle < fall)
+        applied = PHASE_TO_AB @ (BUS_V*on.astype(np.float64))
+        sampling_guard = guard if aperture >= min_aperture else duration/2
+        a = segment_change(state_a, poles[0], drive[0], flux[0], applied-voltage, duration, sampling_guard)
+        b = segment_change(state_b, poles[1], drive[1], flux[1], applied-voltage, duration, sampling_guard)
+        if aperture < min_aperture:
+            continue
+        change = (1-weight)*a+weight*b
+        if 0 < np.sum(on) < 3:
+            active_time += aperture
+            active_i += change
+            volt_seconds += aperture*applied
+            n_active += 1
+        else:
+            passive_time += aperture
+            passive_i += change
+            n_passive += 1
+    if n_active and n_passive:
+        ratio = active_time/passive_time
+        row[:2] = active_i-ratio*passive_i
+        row[2:4] = volt_seconds/PWM_PERIOD_S
+        row[4] = 2*(n_active+ratio**2*n_passive)
+
+
+@njit(cache=True)
 def moving_run(poles, decay, hold, forward, backward, drive, legs, flux, linkage,
                offset, angular_step, theta_initial, rpm, current_peak, probe_axis, periods, motion_block, capture_periods,
-               ramp_start_s=0., ramp_duration_s=0., terminal_rpm=0., square_probe=False):
+               ramp_start_s=0., ramp_duration_s=0., terminal_rpm=0., square_probe=False,
+               slope_records=None, alternating_probe_v=0.):
     """Propagate between remeshed FE operators without restarting cage history."""
     n, phase_nodes, dimension = poles.shape
     state_a, state_b = np.zeros(dimension), np.zeros(dimension)
@@ -185,17 +243,23 @@ def moving_run(poles, decay, hold, forward, backward, drive, legs, flux, linkage
         coefficient_derivative_norm = max(coefficient_derivative_norm, np.linalg.norm(motional))
         voltage = STATOR_OHM*load+((1j*TAU*LOAD_HZ*link+motional)*e).real
         command = voltage.copy()
-        if probe_axis >= 0:
+        if alternating_probe_v:
+            command[(sample//2) % 2] += alternating_probe_v if sample % 2 == 0 else -alternating_probe_v
+        elif probe_axis >= 0:
             probe = np.cos(TAU*PROBE_HZ*t)
             command[probe_axis] += (np.pi/4)*np.sign(probe) if square_probe else probe
         reference = AB_TO_PHASE @ load
         estimate = reference+AB_TO_PHASE @ current_increment
         compensated = AB_TO_PHASE @ command+BUS_V*DEAD_TICKS/TIMER_TICKS*np.sign(reference)
         rise, fall = edges_for_period(compensated, estimate, DEAD_TICKS)
-        for node in (lower, upper):
-            state = state_a if node == lower else state_b
-            advance_modal(state, poles[node, field_phase], decay[node, field_phase], hold[node, field_phase],
-                          drive[node, field_phase], legs[node, field_phase], rise, fall, voltage)
+        if slope_records is None:
+            for node in (lower, upper):
+                state = state_a if node == lower else state_b
+                advance_modal(state, poles[node, field_phase], decay[node, field_phase], hold[node, field_phase],
+                              drive[node, field_phase], legs[node, field_phase], rise, fall, voltage)
+        else:
+            slope_period(state_a, state_b, poles[lower:upper+1, field_phase], drive[lower:upper+1, field_phase],
+                         flux[lower:upper+1, field_phase], rise, fall, voltage, weight, slope_records[sample])
         after = (1-weight)*(flux[lower, field_phase] @ state_a)+weight*(flux[upper, field_phase] @ state_b)
         applied = PHASE_TO_AB @ (BUS_V*(fall-rise)/TIMER_TICKS)
         current_increment = ((applied-voltage)-(after-flux_before)/PWM_PERIOD_S)/STATOR_OHM
