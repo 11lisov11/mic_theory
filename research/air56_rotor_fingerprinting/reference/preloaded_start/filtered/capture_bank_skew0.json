@@ -1,0 +1,35 @@
+{
+  "schema": "air56-capture-v1",
+  "samples": 168,
+  "dimensions": 72,
+  "angles": 288,
+  "profiles": 2,
+  "order": [
+    "center",
+    "basis",
+    "table",
+    "removed_basis"
+  ],
+  "removed": 8,
+  "development_refinement_rms_a": 0.0018144362526472271,
+  "dtype": "float32-le",
+  "skew_steps": 0,
+  "calibration_max_residual_ma": 0.08790787484758368,
+  "threshold_reduced_cost": 1.3826795354929213,
+  "threshold_polarity_margin": 13.815510557964274,
+  "profile_discrepancy_a": [
+    0.0013933619066145465,
+    0.005246057921679782
+  ],
+  "calibration_loads_nm": [
+    -0.03,
+    0.03
+  ],
+  "calibration_levels": [
+    3,
+    4
+  ],
+  "calibration_step_deg": 1.25,
+  "signature": "12 x 0.25 ms at 82 V + 8 x 1 ms at 35 V, 310 V SVM, alpha/beta at dwell ends",
+  "sha256": "064d652b74fcc61cba043cfcf35b6858d64c6057ba95ebb64d9c3c3370612371"
+}
