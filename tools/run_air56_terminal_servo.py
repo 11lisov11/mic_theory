@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from fem.air56.fourier_trace import TraceField
 from fem.air56.p1_volume import P1Volume
-from fem.air56.polar_start import resolving_pulses, resolve
+from fem.air56.polar_start import capture_quality, resolving_pulses, resolve
 from fem.air56.servo_pwm import segments, segment_tangents
 from tools.run_air56_free_field import R, SkewBand, BandField, wrap
 from tools.run_air56_field_observer import J, DRAG
@@ -377,20 +377,93 @@ def cold_voltage(k):
     return 82 * (-1) ** (k % 2 + p // 3) * np.array([np.cos(a), np.sin(a)])
 
 
-def sample_terminal(start, end, predicted_start, predicted_end, duration, args, rng):
+def sample_terminal(
+    start,
+    end,
+    predicted_start,
+    predicted_end,
+    duration,
+    args,
+    rng,
+    measured_history=None,
+    predicted_history=None,
+):
     # Keep conversions after a 2 us switch blanking interval.
     n = min(args.adc_samples, 1 + int(max(0.0, duration - 2e-6) / args.adc_spacing))
     left = np.arange(n) * args.adc_spacing / duration
     samples = end + left[:, None] * (start - end)
+
+    def at_conversions(history):
+        values = np.asarray(history)
+        times = np.linspace(0.0, 1.0, len(values))
+        return np.column_stack([np.interp(1.0 - left, times, v) for v in values.T])
+
+    if measured_history is not None:
+        samples = at_conversions(measured_history)
     if args.adc_correlation:
         samples += rng.normal(0, args.noise * np.sqrt(args.adc_correlation), 2)
     samples += rng.normal(0, args.noise * np.sqrt(1 - args.adc_correlation), samples.shape)
     sample = samples.mean(axis=0) + np.mean(left) * (predicted_end - predicted_start)
+    if predicted_history is not None:
+        sample = samples.mean(axis=0) + predicted_end - at_conversions(predicted_history).mean(axis=0)
     sd = args.noise * np.sqrt(args.adc_correlation + (1 - args.adc_correlation) / n)
     return sample, max(0.00005, sd)
 
 
+def advance_plant(model, state, voltage, duration, load, subdivisions, angles=None, currents=None):
+    torque = 0.0
+    for _ in range(subdivisions):
+        state, mean, _ = model.step(state, voltage, duration / subdivisions, load=load)
+        torque += mean
+        if angles is not None:
+            angles.append(state[-3])
+        if currents is not None:
+            currents.append(state[-5:-3].copy())
+    return state, torque / subdivisions
+
+
+def advance_observer(model, state, factors, voltage, duration, subdivisions, currents=None):
+    step = duration / subdivisions
+    average = 0.0
+    for _ in range(subdivisions):
+        prior = state
+        state, torque, jacobian = model.step(prior, voltage, step, tangent=True)
+        factors, _ = model.differentiate(
+            prior, state, jacobian, factors, np.zeros((2, factors.shape[1])), step
+        )
+        if currents is not None:
+            currents.append(state[-5:-3].copy())
+        average += torque
+    return state, factors, average / subdivisions
+
+
 def run(args):
+    if args.plant_substeps < 1:
+        raise ValueError("plant substeps must be positive")
+    if args.observer_substeps < 1 or (
+        args.observer_substeps > 1 and (not args.pwm or not args.capture_bank)
+    ):
+        raise ValueError(
+            "refined post-capture observation requires switched control and its native capture bank"
+        )
+    if args.model_current_rms < 0:
+        raise ValueError("model current RMS must be nonnegative")
+    if args.fit_start_load and (not args.resolve or args.diagnostic_prior is not None):
+        raise ValueError("load fitting requires blind polarity resolution")
+    if args.check_capture and not (args.fit_start_load or args.capture_bank):
+        raise ValueError("the capture check requires the two-parameter startup fit")
+    if args.capture_bank and (
+        not args.resolve
+        or not args.switched_start
+        or args.start_volts != 35
+        or args.diagnostic_prior is not None
+        or args.ring
+        or args.modes
+        or args.fit_start_load
+    ):
+        raise ValueError(
+            "the native table requires the two inserts and switched 82/35 V blind acquisition"
+        )
     if args.adc_samples < 1 or args.adc_spacing <= 0 or not 0 <= args.adc_correlation <= 1:
         raise ValueError("invalid ADC settings")
     if args.pwm < 0 or ((args.inside_pwm or args.shoot_pwm) and not args.pwm):
@@ -398,51 +471,101 @@ def run(args):
     out = args.out
     out.mkdir(parents=True, exist_ok=True)
     plant = Machine(args.level, args.modes, args.skew, args.ring)
+    observer_level = 3 if args.capture_bank else args.observer_level or args.level
     obs = Machine(
-        args.observer_level or args.level,
+        observer_level,
         args.modes if args.observer_modes is None else args.observer_modes,
         args.skew,
         args.ring,
     )
-    obs.trapezoid = plant.trapezoid = args.trapezoid
+    obs.trapezoid = args.trapezoid or args.observer_substeps > 1
+    plant.trapezoid = args.trapezoid or args.plant_substeps > 1
     if args.calibrate:
         acquire(obs, out, args.switched_start)
         return
     rng = np.random.default_rng(args.seed)
     base = np.deg2rad(args.target)
     x = plant.equilibrium(np.deg2rad(args.initial))
+    startup_load = args.load if args.preloaded else 0.0
+    startup_trace = [[0.0, x[-3], x[-2], startup_load]]
+    pulse_time = 0.0
     resolved = None
     polarity_margin = np.nan
+    reduced_cost = np.nan
+    accepted = None
+    bank_fit = None
     if args.diagnostic_prior is None:
-        angles, lib = acquire(obs, out, args.switched_start)
         reads = []
         pulses = []
         stage_reads = []
         startup_peak = 0.0
         for k in range(12):
             for v, h in voltage_stages(cold_voltage(k), 0.00025, args.switched_start):
-                x, _, _ = plant.step(x, v, h, load=0.0)
+                x, _ = advance_plant(plant, x, v, h, startup_load, args.plant_substeps)
+                pulse_time += h
+                startup_trace.append([pulse_time, x[-3], x[-2], startup_load])
                 pulses.append((v, h))
                 startup_peak = max(startup_peak, np.linalg.norm(x[-5:-3]))
                 reading = x[-5:-3] + rng.normal(0, args.noise, 2)
                 stage_reads.extend(reading)
             reads.extend(reading)
-        grid = np.deg2rad(np.arange(0, 360, 0.1))
-        table = np.array([np.interp(grid, angles, v, period=2 * np.pi) for v in lib.T]).T
-        cost = np.sum((np.array(reads) - table) ** 2, axis=1)
-        initial = grid[np.argmin(cost)]
+        if not args.capture_bank:
+            angles, lib = acquire(obs, out, args.switched_start)
+            grid = np.deg2rad(np.arange(0, 360, 0.1))
+            table = np.array([np.interp(grid, angles, v, period=2 * np.pi) for v in lib.T]).T
+            cost = np.sum((np.array(reads) - table) ** 2, axis=1)
+            initial = grid[np.argmin(cost)]
         if args.resolve:
-            other = abs(wrap(grid - initial)) > np.pi * 2 / 3
-            centers = [initial, grid[np.where(other, cost, np.inf).argmin()]]
             for u, nominal_h in resolving_pulses():
                 for v, h in voltage_stages(u * (args.start_volts / 115), nominal_h, args.switched_start):
-                    x, _, _ = plant.step(x, v, h, load=0.0)
+                    x, _ = advance_plant(plant, x, v, h, startup_load, args.plant_substeps)
+                    pulse_time += h
+                    startup_trace.append([pulse_time, x[-3], x[-2], startup_load])
                     stage_reads.extend(x[-5:-3] + rng.normal(0, args.noise, 2))
                     startup_peak = max(startup_peak, np.linalg.norm(x[-5:-3]))
                     pulses.append((v, h))
-            (_, initial, resolved, acquisition_derivative), polarity_margin = resolve(
-                obs, centers, pulses, stage_reads, max(0.0001, args.noise)
-            )
+            if args.capture_bank:
+                from research.air56_rotor_fingerprinting.preloaded_native import read_bank
+
+                bank_fit, accepted = read_bank(args.capture_bank, args.skew, stage_reads, args.noise)
+                initial = np.deg2rad(bank_fit.initial_deg)
+                reduced_cost, polarity_margin = bank_fit.redcost, bank_fit.margin
+                observer_level = 3 + bank_fit.profile
+                capture = np.array([np.deg2rad(bank_fit.angle), bank_fit.speed, bank_fit.load])
+                if accepted and observer_level != 3:
+                    obs = Machine(observer_level, 0, args.skew)
+                    obs.trapezoid = args.trapezoid or args.observer_substeps > 1
+            else:
+                other = abs(wrap(grid - initial)) > np.pi * 2 / 3
+                centers = [initial, grid[np.where(other, cost, np.inf).argmin()]]
+                (cost, initial, resolved, acquisition_derivative), polarity_margin = resolve(
+                    obs,
+                    centers,
+                    pulses,
+                    stage_reads,
+                    max(0.0001, args.noise),
+                    fit_load=args.fit_start_load,
+                )
+                capture = resolved[-3:]
+                if args.fit_start_load:
+                    reduced_cost, accepted = capture_quality(
+                        cost, max(0.0001, args.noise), len(stage_reads), polarity_margin
+                    )
+            if (args.check_capture or args.capture_bank) and not accepted:
+                np.savez_compressed(
+                    out / (args.name + ".npz"),
+                    trace=np.empty((0, 19)),
+                    cold_angle=initial,
+                    capture_estimate=capture,
+                    startup_trace=startup_trace,
+                    selected_observer_level=observer_level,
+                    startup_peak_a=startup_peak,
+                    polarity_margin=polarity_margin,
+                    capture_reduced_cost=reduced_cost,
+                    capture_status="rejected",
+                    settings=json.dumps(vars(args), default=str),
+                )
+                return
 
     else:
         initial = np.deg2rad(args.diagnostic_prior)
@@ -456,16 +579,20 @@ def run(args):
     S[-1, 2] = 0.025
     if resolved is not None:
         est = resolved
-        S[:, 0] = acquisition_derivative * 0.005
+        if args.fit_start_load:
+            S = np.column_stack((acquisition_derivative, S[:, 1]))
+        else:
+            S[:, 0] = acquisition_derivative * 0.005
     elif args.diagnostic_prior is None:
+        if bank_fit is not None:
+            est[-1] = bank_fit.load
         for v, h in pulses:
-            old = est
-            est, _, fac = obs.step(old, v, h, tangent=True)
-            S, _ = obs.differentiate(old, est, fac, S, np.zeros((2, S.shape[1])), h)
+            est, S, _ = advance_observer(obs, est, S, v, h, args.observer_substeps)
     if args.torque_calibration:
         from tools.calibrate_air56_terminal_torque import TorqueCorrection
 
         obs.torque_calibration = TorqueCorrection(out, args.ring)
+    capture_estimate = est[-3:].copy()
     log = []
     speed_filtered = 0.0
     trim = 0.0
@@ -480,7 +607,7 @@ def run(args):
     for k in range(int(round(args.seconds / args.h))):
         t = (k + 1) * args.h
         target, wref = profile(t, base, args.leg, args.motion_start)
-        load = args.load * np.clip((t - 0.03) / 0.15, 0, 1)
+        load = args.load if args.preloaded else args.load * np.clip((t - 0.03) / 0.15, 0, 1)
         if args.oracle_diagnostic:
             est = x.copy()
             est[-1] = load
@@ -525,6 +652,7 @@ def run(args):
             if args.continuous_bias or args.shoot_pwm:
                 bias = u - args.probe_v * np.array([np.cos(k * np.pi / 2), np.sin(k * np.pi / 2)])
         angles_in_step = [x[-3]]
+        measured_history = predicted_history = None
         if args.pwm:
             average_input_torque = tau
             predicted = est
@@ -534,13 +662,16 @@ def run(args):
                 for j, (v, dt) in enumerate(stages):
                     start_current = x[-5:-3].copy()
                     observer_start_current = predicted[-5:-3].copy()
-                    prior = predicted
-                    predicted, mt, fac = obs.step(prior, v, dt, tangent=True)
-                    S, _ = obs.differentiate(prior, predicted, fac, S, np.zeros((2, S.shape[1])), dt)
-                    x, at, _ = plant.step(x, v, dt, load=load)
+                    measured_history = [start_current] if args.plant_substeps > 1 else None
+                    predicted_history = [observer_start_current] if args.observer_substeps > 1 else None
+                    predicted, S, mt = advance_observer(
+                        obs, predicted, S, v, dt, args.observer_substeps, predicted_history
+                    )
+                    x, at = advance_plant(
+                        plant, x, v, dt, load, args.plant_substeps, angles_in_step, measured_history
+                    )
                     tau += dt * mt / args.h
                     actual += dt * at / args.h
-                    angles_in_step.append(x[-3])
                     last = carrier == args.pwm - 1 and j == len(stages) - 1
                     if args.inside_pwm and not last and dt > 2e-6:
                         mid, mid_sd = sample_terminal(
@@ -551,19 +682,34 @@ def run(args):
                             dt,
                             args,
                             rng,
+                            measured_history,
+                            predicted_history,
                         )
-                        predicted, S, _ = posterior(predicted, S, mid, mid_sd)
+                        predicted, S, _ = posterior(
+                            predicted, S, mid, np.hypot(mid_sd, args.model_current_rms)
+                        )
             pred = predicted
             pwm_bias += (1 - np.exp(-args.h / 0.04)) * (tau - average_input_torque - pwm_bias)
             aperture_interval = stages[-1][1]
         else:
             start_current = x[-5:-3].copy()
             observer_start_current = est[-5:-3]
-            x, actual, _ = plant.step(x, u, args.h, load=load)
+            measured_history = [start_current] if args.plant_substeps > 1 else None
+            x, actual = advance_plant(
+                plant, x, u, args.h, load, args.plant_substeps, angles_in_step, measured_history
+            )
             S, _ = obs.differentiate(est, pred, fac, S, np.zeros((2, S.shape[1])), args.h)
             aperture_interval = args.h
         adc, sd = sample_terminal(
-            start_current, x[-5:-3], observer_start_current, pred[-5:-3], aperture_interval, args, rng
+            start_current,
+            x[-5:-3],
+            observer_start_current,
+            pred[-5:-3],
+            aperture_interval,
+            args,
+            rng,
+            measured_history,
+            predicted_history,
         )
         new = np.zeros((len(est), 2))
         if args.adaptive:
@@ -574,7 +720,7 @@ def run(args):
         new[-1, 0] = (0.000010 + (args.load_process - 0.000010) * opening) * np.sqrt(args.h)
         new[-2, 1] = (0.0001 + 0.0029 * opening) * np.sqrt(args.h)
         S = compress(np.column_stack((S, new)), 7)
-        est, S, nis = posterior(pred, S, adc, max(sd, 0.00005))
+        est, S, nis = posterior(pred, S, adc, np.hypot(max(sd, 0.00005), args.model_current_rms))
         mean_nis += (1 - np.exp(-args.h / 0.05)) * (nis - mean_nis)
         log.append(
             [
@@ -605,6 +751,12 @@ def run(args):
                 trace=log,
                 cold_angle=initial,
                 startup_peak_a=startup_peak,
+                startup_trace=startup_trace,
+                capture_estimate=capture_estimate,
+                native_capture_deg=bank_fit.angle if bank_fit is not None else np.nan,
+                capture_reduced_cost=reduced_cost,
+                capture_status="accepted" if args.check_capture or args.capture_bank else "unchecked",
+                selected_observer_level=observer_level,
                 polarity_margin=polarity_margin,
                 settings=json.dumps(vars(args), default=str),
                 elapsed_s=time.perf_counter() - start,
@@ -625,6 +777,22 @@ if __name__ == "__main__":
     p.add_argument("--target", type=float, default=27)
     p.add_argument("--diagnostic-prior", type=float)
     p.add_argument("--load", type=float, default=0.02)
+    p.add_argument(
+        "--preloaded", action="store_true", help="Apply the plant load from the first probing pulse"
+    )
+    p.add_argument(
+        "--capture-bank", type=Path, help="Use read-only native startup tables for the two-insert rotor"
+    )
+    p.add_argument(
+        "--fit-start-load",
+        action="store_true",
+        help="Fit unknown angle and signed disturbance from startup currents",
+    )
+    p.add_argument(
+        "--check-capture",
+        action="store_true",
+        help="End this trial before servo enable if the startup fit is incompatible",
+    )
     p.add_argument("--load-process", type=float, default=0.012)
     p.add_argument("--seconds", type=float, default=8.0)
     p.add_argument("--leg", type=float, default=2.7)
@@ -647,6 +815,19 @@ if __name__ == "__main__":
     p.add_argument("--switched-start", action="store_true")
     p.add_argument("--start-volts", type=float, default=115.0)
     p.add_argument("--trapezoid", action="store_true")
+    p.add_argument("--observer-substeps", type=int, default=1)
+    p.add_argument(
+        "--model-current-rms",
+        type=float,
+        default=0.0,
+        help="Observer-only current model discrepancy in ampere RMS",
+    )
+    p.add_argument(
+        "--plant-substeps",
+        type=int,
+        default=1,
+        help="Refine each plant dwell; >1 enables trapezoidal shaft integration only in the plant",
+    )
     p.add_argument("--inside-pwm", action="store_true")
     p.add_argument("--adc-samples", type=int, default=1)
     p.add_argument("--adc-spacing", type=float, default=2.0e-6)

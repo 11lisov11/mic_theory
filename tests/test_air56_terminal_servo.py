@@ -8,6 +8,97 @@ from tools.run_air56_free_field import BandField, SkewBand
 from tools.score_air56_terminal_servo import score
 
 
+def test_startup_estimates_unknown_negative_load_from_currents():
+    from fem.air56.polar_start import capture_quality, resolve, resolving_pulses
+
+    motor = Machine(3, 0, False)
+    angle = np.deg2rad(27)
+    state = motor.equilibrium(angle)
+    measured = []
+    pulses = resolving_pulses()
+    for v, h in pulses:
+        state, _, _ = motor.step(state, v, h, load=-0.02)
+        measured.extend(state[-5:-3])
+    answer, margin = resolve(
+        motor, [angle + 0.01, angle + np.pi], pulses, measured, 0.0001, fit_load=True
+    )
+    cost, _, estimate, factors = answer
+    assert abs(estimate[-1] + 0.02) < 0.002
+    assert abs(estimate[-3] - state[-3]) < 0.001
+    assert factors.shape == (len(estimate), 2)
+    assert capture_quality(cost, 0.0001, len(measured), margin)[1]
+    assert not capture_quality(1.0, 0.0001, len(measured), margin)[1]
+
+
+def test_native_start_table_wraps_angle_and_preserves_load_sign(tmp_path):
+    import ctypes as ct
+    import shutil
+    from research.air56_rotor_fingerprinting.preloaded_native import Capture, library
+
+    if not shutil.which("gcc"):
+        pytest.skip("native lookup requires a C compiler")
+    reader = library(tmp_path)
+    angle = np.deg2rad(np.arange(144) * 2.5)
+    table = np.zeros((1, len(angle), 2, 5), dtype="float32")
+    table[0, :, 0, 0] = np.cos(angle)
+    table[0, :, 0, 1] = np.sin(angle)
+    table[0, :, 0, 3] = 1.2
+    table[0, :, 1, 2] = 1.0
+    initial = np.deg2rad(359.2)
+    reading = np.array([np.cos(initial), np.sin(initial), -0.023], dtype="float32")
+    answer = Capture()
+    assert reader(
+        reading,
+        np.zeros(3, dtype="float32"),
+        np.eye(3, dtype="float32"),
+        table,
+        3,
+        3,
+        144,
+        1,
+        0.0003,
+        ct.byref(answer),
+    )
+    assert answer.angle == pytest.approx(0.4, abs=0.06)
+    assert answer.load == pytest.approx(-0.023, abs=0.0001)
+    # The fourth channel is a calibrated source of numerical discrepancy.
+    filtered = library(tmp_path, build=False, filtered=True)
+    basis = np.vstack((np.eye(3), np.zeros(3))).astype("float32")
+    removed = np.array([[0, 0, 0, 1]], dtype="float32")
+    extended = np.append(reading, 1.0).astype("float32")
+    assert filtered(
+        extended,
+        np.zeros(4, dtype="float32"),
+        basis,
+        table,
+        4,
+        3,
+        144,
+        1,
+        0.0003,
+        removed,
+        1,
+        ct.byref(answer),
+    )
+    assert answer.angle == pytest.approx(0.4, abs=0.06)
+    assert answer.redcost < 1.0
+
+
+def test_adc_uses_current_at_conversion_times_across_refined_dwell():
+    from types import SimpleNamespace
+    from tools.run_air56_terminal_servo import sample_terminal
+
+    args = SimpleNamespace(adc_samples=32, adc_spacing=2e-6, adc_correlation=0.0, noise=0.0)
+    zero = np.zeros(2)
+    history = [zero, np.ones(2), zero]
+    sample, _ = sample_terminal(zero, zero, zero, zero, 8e-6, args, np.random.default_rng(4), history)
+    np.testing.assert_allclose(sample, 0.5)
+    sample, _ = sample_terminal(
+        zero, zero, zero, zero, 8e-6, args, np.random.default_rng(4), history, history
+    )
+    np.testing.assert_allclose(sample, zero)
+
+
 @pytest.mark.parametrize("skew", [False, True])
 def test_shared_winding_step_and_differential(skew):
     motor = Machine(3, 0, skew)

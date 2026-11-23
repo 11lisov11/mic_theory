@@ -134,6 +134,15 @@ CASES["refit"] = CASES["independent"].copy()
 CASES["refit"][CASES["refit"].index("--observer-level") + 1] = "4"
 CASES["ring_low_noise"] = [*CASES["burst_ring"], "--noise", ".0003"]
 CASES["ring_mid_noise"] = [*CASES["burst_ring"], "--noise", ".001"]
+CASES["preloaded_pwm"] = [
+    *CASES["original_pwm"],
+    "--switched-start",
+    "--start-volts",
+    "35",
+    "--preloaded",
+    "--fit-start-load",
+    "--check-capture",
+]
 
 
 def launch(out, case, skew):
