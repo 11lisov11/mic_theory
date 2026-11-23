@@ -34,20 +34,28 @@ def run(case, skew, out, seconds):
             raise ValueError(f"Calibration differs from versioned data: {dest}")
     if not (bank / ("capture_lookup.dll" if os.name == "nt" else "capture_lookup.so")).exists():
         library(bank)
-    duration = 0.8 if case in ("matched_reference", "unadjusted", "identified", "holdout6_") else 12.5
+    duration = (
+        0.8
+        if case
+        in ("matched_reference", "unadjusted", "identified", "tracked", "quiet", "holdout6_", "impulse")
+        else 12.5
+    )
     settings.update(
         capture_bank=str(bank.resolve()),
         seconds=duration if seconds is None else seconds,
         observer_substeps=4 if case == "matched_reference" else 3,
         model_current_rms=0.002,
         load_process=0.0004,
-        identify_dwell=case in ("identified", "tracked", "quiet", "parallel", "holdout6_"),
-        track_dwell=case in ("tracked", "quiet", "parallel", "holdout6_"),
+        identify_dwell=case
+        in ("identified", "tracked", "quiet", "parallel", "holdout6_", "refined6_", "impulse"),
+        track_dwell=case in ("tracked", "quiet", "parallel", "holdout6_", "refined6_", "impulse"),
     )
-    if case in ("quiet", "parallel", "holdout6_"):
+    if case in ("quiet", "parallel", "holdout6_", "refined6_", "impulse"):
         settings.update(probe_v=0.6, stiffness=0.70, seed=8271)
-    if case == "parallel":
-        settings.update(parallel_dwells=True, seed=19013)
+    if case in ("parallel", "impulse"):
+        settings.update(parallel_dwells=True, seed=19013, impulse_control=case == "impulse")
+    if case == "refined6_":
+        settings.update(parallel_dwells=True, plant_substeps=6, seed=10037)
     if case == "holdout6_":
         settings.update(plant_substeps=6, seed=10037)
     target = out / f"{case}{skew}.npz"
@@ -91,7 +99,7 @@ def metrics(path):
         )
         t = x[:, 0]
         early = x[(t >= 0.55) & (t <= 0.8000001)]
-        if not len(early):
+        if not len(early) or t[-1] < 0.8 - 1e-9:
             return None
 
         def max_hold(a):
@@ -118,6 +126,8 @@ def metrics(path):
             if np.any(remains_in_band) and t[-1] >= 0.8
             else np.nan,
             early_torque_rms_mnm=rms(early[:, 9] - early[:, 10]) * 1000,
+            early_speed_p95_rpm=np.percentile(np.abs(early[:, 4]) * 30 / np.pi, 95),
+            early_mean_torque_error_rms_mnm=rms(early[:, 9] - opts["load"]) * 1000,
             early_load_mean_nm=np.mean(early[:, 8]),
         )
         m = score(x, seconds=12.5)
@@ -140,6 +150,53 @@ def metrics(path):
                 bool(m["passes"]) and row["final_hold_max_deg"] <= 1.0 and row["early_hold_max_deg"] <= 1.0
             )
         return row
+
+
+def export_trajectories(out):
+    """Portable per-carrier evidence; full-precision solver archives are kept separately."""
+    names = ("parallel0", "parallel1", "refined6_0", "refined6_1")
+    with (out / "trajectories.csv").open("w", newline="", encoding="utf-8") as stream:
+        writer = csv.writer(stream)
+        writer.writerow(
+            (
+                "case",
+                "t_s",
+                "target_deg",
+                "shaft_deg",
+                "read_deg",
+                "ref_rpm",
+                "shaft_end_rpm",
+                "shaft_min_deg",
+                "shaft_max_deg",
+                "field_mean_nm",
+                "predicted_mean_nm",
+                "external_nm",
+                "estimated_load_nm",
+                "u_alpha_v",
+                "u_beta_v",
+                "adc_alpha_compensated_a",
+                "adc_beta_compensated_a",
+            )
+        )
+        for name in names:
+            archive = out / (name + ".npz")
+            if not archive.is_file():
+                continue
+            with np.load(archive) as data:
+                x = data["trace"]
+            if len(x) != 3125 or abs(x[-1, 0] - 12.5) > 1e-9:
+                continue
+            fields = np.column_stack(
+                (
+                    x[:, 0],
+                    np.rad2deg(x[:, [3, 1, 2]]),
+                    x[:, [6, 4]] * 30 / np.pi,
+                    np.rad2deg(x[:, 17:19]),
+                    x[:, [9, 10, 7, 8, 11, 12, 13, 14]],
+                )
+            )
+            for row in fields:
+                writer.writerow([name, *(format(v, ".10g") for v in row)])
 
 
 def report(out, primary=None):
@@ -187,7 +244,7 @@ def report(out, primary=None):
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
 
-        fig, axes = plt.subplots(3, 2, figsize=(11, 7), sharex=True, constrained_layout=True)
+        fig, axes = plt.subplots(4, 2, figsize=(11.5, 9), sharex=True, constrained_layout=True)
         for skew in (0, 1):
             p = out / f"{primary}{skew}.npz"
             if not metrics(p).get("complete", False):
@@ -198,22 +255,35 @@ def report(out, primary=None):
                 axes[0, skew].plot(t, np.rad2deg(x[:, 1]), label="Вал FEM")
                 axes[0, skew].plot(t, np.rad2deg(x[:, 2]), lw=0.7, label="По токам")
                 axes[0, skew].plot(t, np.rad2deg(x[:, 3]), "k--", lw=0.8, label="Задание")
-                axes[1, skew].plot(t, np.rad2deg(x[:, 1] - x[:, 3]), lw=0.8)
+                captured = t >= 0.55
+                axes[1, skew].plot(t[captured], np.rad2deg(x[captured, 1] - x[captured, 3]), lw=0.8)
                 axes[1, skew].axhspan(-1, 1, color="green", alpha=0.12)
                 axes[1, skew].set_xlim(0, 12.5)
-                axes[1, skew].set_ylim(-1.8, 1.8)
-                axes[2, skew].plot(t, (x[:, 10] - x[:, 9]) * 1000, lw=0.6)
-                axes[2, skew].set_xlabel("Время после подхвата, с")
+                visible = t >= 1.55
+                for column, style in ((1, "-"), (2, ":")):
+                    sliding = (
+                        (x[visible, column] - np.interp(t[visible] - 1.0, t, x[:, column])) * 30 / np.pi
+                    )
+                    axes[2, skew].plot(t[visible], sliding, style, lw=1.0)
+                axes[2, skew].plot(t[visible], x[visible, 6] * 30 / np.pi, "k--", lw=0.8)
+                axes[3, skew].plot(t, (x[:, 10] - x[:, 9]) * 1000, lw=0.6)
+                axes[3, skew].set_xlabel("Время после подхвата, с")
                 axes[0, skew].set_title("Без скоса" if not skew else "Скос в один пазовый шаг")
         axes[0, 0].legend()
         for row, label in enumerate(
-            ("Механический угол, °", "Вал минус задание, °", "Ошибка момента, мН·м")
+            (
+                "Механический угол, °",
+                "Вал минус задание, °",
+                "Скорость за 1 с, об/мин",
+                "Ошибка момента, мН·м",
+            )
         ):
             axes[row, 0].set_ylabel(label)
         for ax in axes.flat:
             ax.grid(alpha=0.2)
-        fig.savefig(out / "closed_loop.png", dpi=160)
+        fig.savefig(out / ("closed_loop_6.png" if primary == "refined6_" else "closed_loop.png"), dpi=160)
         plt.close(fig)
+        export_trajectories(out)
         files = [
             *out.glob("*.npz"),
             *out.glob("*.csv"),
@@ -241,11 +311,13 @@ if __name__ == "__main__":
             "quiet",
             "parallel",
             "holdout6_",
+            "refined6_",
+            "impulse",
         ],
     )
     parser.add_argument("--skew", type=int, choices=[0, 1], default=0)
     parser.add_argument("--seconds", type=float)
-    parser.add_argument("--primary", choices=["tracked", "quiet", "parallel"])
+    parser.add_argument("--primary", choices=["tracked", "quiet", "parallel", "refined6_"])
     args = parser.parse_args()
     if args.case:
         run(args.case, args.skew, args.out.resolve(), args.seconds)

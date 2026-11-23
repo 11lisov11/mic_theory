@@ -99,3 +99,25 @@ def test_parallel_physical_and_observer_branches_keep_separate_states():
     np.testing.assert_allclose(combined[0][-6:], standalone[0][-6:], atol=3e-6)
     assert combined[2] == pytest.approx(standalone[2], abs=1e-6)
     assert len(angles) == 4 and len(currents) == 5
+
+
+def test_refined_impulse_gradient_includes_duration_and_endpoint_penalty():
+    from fem.air56.impulse_control import impulse_gradient
+    from fem.air56.servo_pwm import segment_tangents
+
+    model = Machine(3, 0, False)
+    model.trapezoid = True
+    state = model.equilibrium(0.55)
+    state[-1] = 0.018
+    u = np.array([4.2, -1.6])
+    period = 0.004
+
+    def value(v):
+        stages = segment_tangents(v, period)
+        mean, end, dm, de = impulse_gradient(model, state, stages, 3, period)
+        return mean + 0.25 * (end - state[-6]), dm + 0.25 * de
+
+    _, gradient = value(u)
+    for axis, du in enumerate(0.001 * np.eye(2)):
+        expected = (value(u + du)[0] - value(u - du)[0]) / 0.002
+        assert gradient[axis] == pytest.approx(expected, abs=2e-6)

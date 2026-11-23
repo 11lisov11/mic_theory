@@ -445,6 +445,8 @@ def run(args):
 
 def _run(args, resources):
     workers = None
+    if args.impulse_control and (not args.track_dwell or not args.parallel_dwells or args.pwm != 1):
+        raise ValueError("switched impulse control requires parallel identified dynamics and one carrier")
     if args.parallel_dwells and (not args.identify_dwell or args.plant_substeps < 2):
         raise ValueError("parallel dwells require identified and refined PWM dynamics")
     if args.plant_substeps < 1:
@@ -651,6 +653,7 @@ def _run(args, resources):
     demands = []
     quiet_time = 0.0
     mean_nis = 2.0
+    speed_offset = 0.
     start = time.perf_counter()
     for k in range(int(round(args.seconds / args.h))):
         t = (k + 1) * args.h
@@ -683,7 +686,17 @@ def _run(args, resources):
             position_i = np.clip(
                 position_i + args.h * args.integral_gain * wrap(target - est[-3]), -0.03, 0.03
             )
-            if args.shoot_pwm:
+            if args.impulse_control:
+                from fem.air56.impulse_control import preview
+                demand = np.clip(
+                    est[-1] + args.stiffness * wrap(target-est[-3])
+                    + .014*np.sqrt(args.stiffness/.32)*(wref-est[-2]+speed_offset) + position_i,
+                    -.12, .12)
+                probe = args.probe_v*np.array([np.cos(k*np.pi/2),np.sin(k*np.pi/2)])
+                previous_voltage = (R-8)*est[-5:-3] if bias is None else bias
+                u, tau = preview(obs, control_state, demand, previous_voltage, probe,
+                                 args.h, weights(np.clip(est[0],0.,1.)), workers)
+            elif args.shoot_pwm:
                 u, pred, tau, fac = predictive_pwm(obs, control_state, target, wref, k, args, position_i, bias)
             else:
                 u, pred, tau, fac = command(
@@ -698,7 +711,7 @@ def _run(args, resources):
                     bias,
                     args.probe_v,
                 )
-            if args.continuous_bias or args.shoot_pwm:
+            if args.continuous_bias or args.shoot_pwm or args.impulse_control:
                 bias = u - args.probe_v * np.array([np.cos(k * np.pi / 2), np.sin(k * np.pi / 2)])
         angles_in_step = [x[-3]]
         measured_history = predicted_history = None
@@ -706,6 +719,7 @@ def _run(args, resources):
             average_input_torque = tau
             predicted = est
             actual = tau = 0.0
+            predicted_displacement = 0.0
             stages = segments(u, args.h / args.pwm)
             for carrier in range(args.pwm):
                 for j, (v, dt) in enumerate(stages):
@@ -714,7 +728,9 @@ def _run(args, resources):
                     measured_history = [start_current] if args.plant_substeps > 1 else None
                     predicted_history = [observer_start_current] if args.observer_substeps > 1 else None
                     plant_step = workers.reference(x, v, dt, load, args.plant_substeps) if workers else None
+                    angle_before = predicted[-3]
                     predicted, S, mt = observe(predicted, S, v, dt, predicted_history)
+                    predicted_displacement += predicted[-3] - angle_before
                     if plant_step is None:
                         x, at = advance_plant(
                             plant, x, v, dt, load, args.plant_substeps, angles_in_step, measured_history
@@ -741,6 +757,9 @@ def _run(args, resources):
                             predicted, S, mid, np.hypot(mid_sd, args.model_current_rms)
                         )
             pred = predicted
+            if args.impulse_control:
+                speed_offset += (1-np.exp(-args.h/.016))*(
+                    predicted[-2] - predicted_displacement/args.h - speed_offset)
             pwm_bias += (1 - np.exp(-args.h / 0.04)) * (tau - average_input_torque - pwm_bias)
             aperture_interval = stages[-1][1]
         else:
@@ -873,6 +892,7 @@ if __name__ == "__main__":
     p.add_argument("--start-volts", type=float, default=115.0)
     p.add_argument("--trapezoid", action="store_true")
     p.add_argument("--track-dwell", action="store_true")
+    p.add_argument("--impulse-control", action="store_true")
     p.add_argument("--parallel-dwells", action="store_true")
     p.add_argument("--identify-dwell", action="store_true")
     p.add_argument("--observer-substeps", type=int, default=1)

@@ -23,6 +23,16 @@ def _step(state, voltage, dt, load, subdivisions, log_angle, log_current):
     return state, torque, angles, currents
 
 
+def _impulse(state, stages, interval, subdivisions):
+    from tools.run_air56_terminal_servo import advance_plant
+
+    total = 0.0
+    for v, h in stages:
+        state, tau = advance_plant(_machine, state, v, h, state[-1], subdivisions)
+        total += h * tau / interval
+    return total, state[-6]
+
+
 def _signature(angle, load, pulses, subdivisions):
     from tools.run_air56_terminal_servo import advance_plant
 
@@ -59,6 +69,9 @@ class DwellWorkers(ExitStack):
             n: pool.submit(_step, state, voltage, dt, state[-1], n, False, history)
             for n, pool in self.observer.items()
         }
+
+    def impulses(self, state, stages, interval):
+        return {n: pool.submit(_impulse, state, stages, interval, n) for n, pool in self.observer.items()}
 
     def signatures(self, angle, load, pulses):
         return {n: pool.submit(_signature, angle, load, pulses, n) for n, pool in self.observer.items()}
