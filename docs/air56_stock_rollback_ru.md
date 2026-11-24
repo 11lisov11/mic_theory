@@ -25,7 +25,7 @@
 
 На горизонте 100 мс все 4 проверки с одиночным импульсом вышли за 1°, максимальное отклонение достигло 12,9°. За 120 мс обычный непрерывный наблюдатель дал максимум 24,6°. Вариант с вычитанием отклика виртуально неподвижной машины дал диапазон 0,7–2,0°, критерий удержания пройден в 1 из 8 условий. При дополнительной компенсации нагрузки на горизонте 240 мс диапазон составил 3,3–5,2°. Для длинных опытов использованы прямой ротор и предварительная модель скоса с тремя сечениями.
 
-[График двух порогов и сходимости расчёта скоса](../research/air56_rotor_fingerprinting/reference/stock_release/validation.png) · [Численные результаты](../research/air56_rotor_fingerprinting/reference/stock_release/summary.json) · [Контрольная сумма архива](../research/air56_rotor_fingerprinting/reference/stock_release/archive.json) · [Фильтр и выдача импульса на C99](../research/air56_rotor_fingerprinting/stock_rollback.h).
+[График двух порогов и сходимости расчёта скоса](../research/air56_rotor_fingerprinting/reference/stock_release/validation.png) · [Численные результаты](../research/air56_rotor_fingerprinting/reference/stock_release/summary.json) · [Архив расчётов](../research/air56_rotor_fingerprinting/reference/stock_release/stock_release_records.zip) · [Контрольная сумма архива](../research/air56_rotor_fingerprinting/reference/stock_release/archive.json) · [Фильтр и выдача импульса на C99](../research/air56_rotor_fingerprinting/stock_rollback.h).
 
 ## Условия, в которых проверялся привод
 
